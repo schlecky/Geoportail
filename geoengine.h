@@ -16,6 +16,8 @@ public:
     GeoEngine();
     void init();
     QPoint convertLongLatToXY(double longi, double lati);
+    double convertToLongitude(double x);
+    double convertToLatitude(double y);
     QPoint convertXYToNumTile(QPoint xy, int zoomLevel);
     QPoint convertNumTileToXY(QPoint xy, int zoomLevel);
     QPoint convertPixToMapXY(QPoint pix,int zoomLevel);
@@ -44,6 +46,7 @@ private:
 
 
     QVector<QString> csteCouche;
+    QVector<QString> formatCouche;
 
     QList<QNetworkReply*> imageRequests;
 

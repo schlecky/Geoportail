@@ -10,7 +10,7 @@ class Tile : public QLabel
     Q_OBJECT
 public:
     explicit Tile(QWidget *parent = 0);
-    void loadPixmapFromData(QByteArray data, const char* format);
+    void loadPixmapFromData(QByteArray data, const char* format=0);
     void setX(int new_x){number.setX(new_x);}
     void setY(int new_y){number.setY(new_y);}
     void setNum(QPoint n) {number = n;}

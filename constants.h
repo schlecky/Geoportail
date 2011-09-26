@@ -36,7 +36,10 @@ const double phi0= 0.8115781021773631;
 typedef enum {
     CARTE_IGN=0,
     PHOTOS,
-    TEST} Couche;
+    CADASTRE,
+    CASSINI,
+    TEST,
+    } Couche;
 
 
 #endif // TABLES_H

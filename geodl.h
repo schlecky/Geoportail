@@ -31,7 +31,6 @@ class GeoDL : public QMainWindow
         GeoDL();
         ~GeoDL();
     public slots:
-        void on_dlBtn_clicked(bool chk);
 
     private:
         MapWidget* mapWidget;
@@ -41,4 +40,8 @@ private slots:
         void on_radioCarte_toggled(bool checked);
         void on_radioPhotos_toggled(bool checked);
         void on_radioButton_toggled(bool checked);
+        void on_radioButton_2_toggled(bool checked);
+        void on_btnLongLat_clicked();
+        void on_mapWidget_coordChange(double,double);
+        void on_mapWidget_mouseCoordChange(double,double);
 };

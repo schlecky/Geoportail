@@ -24,22 +24,15 @@
 GeoDL::GeoDL()
 {
     ui.setupUi(this);
+    //connect(mapWidget,SIGNAL(coordChange(double,double)),this,SLOT())
    // mapWidget = new MapWidget;
    // ui.vLayout->addWidget(mapWidget,2);
-
 }
 
 GeoDL::~GeoDL()
 {
 
 }
-
-void GeoDL::on_dlBtn_clicked(bool chk)
-{
-
-}
-
-
 
 int main(int argc, char* argv[])
 {
@@ -66,5 +59,29 @@ void GeoDL::on_radioPhotos_toggled(bool checked)
 void GeoDL::on_radioButton_toggled(bool checked)
 {
     if(checked)
-        ui.mapWidget->setCouche(TEST);
+        ui.mapWidget->setCouche(CASSINI);
+}
+
+void GeoDL::on_radioButton_2_toggled(bool checked)
+{
+    if(checked)
+        ui.mapWidget->setCouche(CADASTRE);
+}
+
+void GeoDL::on_btnLongLat_clicked()
+{
+    double longitude = ui.edtLongitude->text().toDouble();
+    double latitude = ui.edtLatitude->text().toDouble();
+    ui.mapWidget->goToLongLat(longitude, latitude);
+}
+
+void GeoDL::on_mapWidget_coordChange(double longit, double latit)
+{
+    ui.edtLongitude->setText(QString("%1").arg(longit));
+    ui.edtLatitude->setText(QString("%1").arg(latit));
+}
+
+void GeoDL::on_mapWidget_mouseCoordChange(double longit, double latit)
+{
+    ui.statusbar->showMessage(QString("%1 , %2").arg(longit).arg(latit));
 }

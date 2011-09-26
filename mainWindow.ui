@@ -14,6 +14,9 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
+   <property name="mouseTracking">
+    <bool>false</bool>
+   </property>
    <layout class="QHBoxLayout">
     <item>
      <layout class="QVBoxLayout" name="vLayout">
@@ -30,7 +33,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="xEdt">
+         <widget class="QLineEdit" name="edtLongitude">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -50,7 +53,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="yEdt">
+         <widget class="QLineEdit" name="edtLatitude">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -69,6 +72,19 @@
           </property>
          </widget>
         </item>
+        <item>
+         <spacer name="horizontalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
        </layout>
       </item>
       <item>
@@ -85,48 +101,52 @@
         <property name="frameShadow">
          <enum>QFrame::Raised</enum>
         </property>
-        <widget class="QRadioButton" name="radioCarte">
-         <property name="geometry">
-          <rect>
-           <x>10</x>
-           <y>0</y>
-           <width>116</width>
-           <height>22</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>Carte</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-        <widget class="QRadioButton" name="radioPhotos">
-         <property name="geometry">
-          <rect>
-           <x>90</x>
-           <y>0</y>
-           <width>116</width>
-           <height>22</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>Photos</string>
-         </property>
-        </widget>
-        <widget class="QRadioButton" name="radioButton">
-         <property name="geometry">
-          <rect>
-           <x>180</x>
-           <y>0</y>
-           <width>116</width>
-           <height>22</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>Test</string>
-         </property>
-        </widget>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QRadioButton" name="radioCarte">
+           <property name="text">
+            <string>Carte</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="radioPhotos">
+           <property name="text">
+            <string>Photos</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="radioButton">
+           <property name="text">
+            <string>Cassini</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="radioButton_2">
+           <property name="text">
+            <string>Cadastre</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
        </widget>
       </item>
       <item>
@@ -136,6 +156,9 @@
           <horstretch>1</horstretch>
           <verstretch>1</verstretch>
          </sizepolicy>
+        </property>
+        <property name="mouseTracking">
+         <bool>true</bool>
         </property>
        </widget>
       </item>

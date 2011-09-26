@@ -11,11 +11,22 @@ GeoEngine::GeoEngine()
     connect(manager,SIGNAL(finished(QNetworkReply*)),this, SLOT(requestFinished(QNetworkReply*)));
 
     // Les constantes pour les differents types d'images
-    csteCouche.resize(3);
+    csteCouche.resize(10);
+    formatCouche.resize(10);
     csteCouche[CARTE_IGN] = QString("8u6");
+    formatCouche[CARTE_IGN] = QString(".jpg");
+
     csteCouche[PHOTOS] = QString("UxG");
-    //csteCouche[TEST] = QString("CkS");// Cassini
-    csteCouche[TEST] = QString("cIl");
+    formatCouche[PHOTOS] = QString(".jpg");
+
+    csteCouche[CASSINI] = QString("CkS");// Cassini
+    formatCouche[CASSINI] = QString(".jpg");
+
+    csteCouche[CADASTRE] = QString("8TX");
+    formatCouche[CADASTRE] = QString(".png");
+
+    csteCouche[TEST] = QString("8fG");
+    formatCouche[TEST] = QString(".png");
     //qDebug()<<genereUrl(PHOTOS,3700,42717,4).toString();
 }
 
@@ -24,6 +35,16 @@ QPoint GeoEngine::convertLongLatToXY(double longi, double lati)
     int x = int(longi*pi/180 * r * cos(phi0));
     int y = int(lati*pi/180  * r);
     return QPoint(x,y);
+}
+
+double GeoEngine::convertToLongitude(double x)
+{
+    return x/(r*cos(phi0))*180/pi;
+}
+
+double GeoEngine::convertToLatitude(double x)
+{
+    return x/r*180/pi;
 }
 
 QPoint GeoEngine::convertXYToNumTile(QPoint xy, int zoomLevel)
@@ -86,7 +107,8 @@ QUrl GeoEngine::genereUrl(Couche couche, int x, int y, int zoomLevel)
     url.append(tabencryptnbr62x[xEncrypt.size()]);
     url.append(xEncrypt);
     url.append(yEncrypt);
-    url.append(".jpg");
+    //url.append(".jpg");
+    url.append(formatCouche[couche]);
     return QUrl(url);
 }
 
