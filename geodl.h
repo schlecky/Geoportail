@@ -33,7 +33,6 @@ class GeoDL : public QMainWindow
     public slots:
 
     private:
-        MapWidget* mapWidget;
         Ui::MainWindow ui;
 
 private slots:
@@ -44,4 +43,5 @@ private slots:
         void on_btnLongLat_clicked();
         void on_mapWidget_coordChange(double,double);
         void on_mapWidget_mouseCoordChange(double,double);
+        void on_btnDownload_clicked();
 };

@@ -6,6 +6,7 @@
 #include <QPoint>
 #include <QRect>
 #include <QMouseEvent>
+#include <QPixmap>
 #include "tile.h"
 #include "geoengine.h"
 #include "constants.h"
@@ -29,6 +30,7 @@ public slots:
    // void startDownload();
     void updateMap();
     void goToLongLat(double longit, double latit);
+    void downloadSelection(int zoomLevel);  //telecharge la zone selectionnee au niveau de zoom 'zoomLevel'
 
 private:
     //QList<Tile*> tiles;
@@ -41,12 +43,16 @@ private:
 
     QPoint convertScreenToMapNum(QPoint pos);
     QPoint convertScreenToMapXY(QPoint pos);
+    QRect convertScreenToMapXY(QRect rect);
     QPoint convertMapToScreenXY(QPoint pos);
 
     Overlay* selectionOverlay;
     QList<Tile*> tiles;
-    QMap<int,Tile*> downIds;
 
+    QMap<int,Tile*> downIds;
+    QMap<int,QPoint> toSavePositions;
+
+    QPixmap savedMap;
 
     bool moving;
     bool selecting;

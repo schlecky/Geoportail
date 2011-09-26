@@ -85,3 +85,8 @@ void GeoDL::on_mapWidget_mouseCoordChange(double longit, double latit)
 {
     ui.statusbar->showMessage(QString("%1 , %2").arg(longit).arg(latit));
 }
+
+void GeoDL::on_btnDownload_clicked()
+{
+    ui.mapWidget->downloadSelection(6);
+}

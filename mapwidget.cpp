@@ -2,6 +2,8 @@
 #include "constants.h"
 #include <QDebug>
 #include <QPainter>
+#include <QMessageBox>
+#include <QFileDialog>
 
 MapWidget::MapWidget(QWidget *parent) :
     QWidget(parent)
@@ -33,6 +35,11 @@ QPoint MapWidget::convertScreenToMapXY(QPoint pos)
     return center + geoEngine->convertPixToMapXY(temp,zoomLevel);
 }
 
+QRect MapWidget::convertScreenToMapXY(QRect rect)
+{
+    return QRect(convertScreenToMapXY(rect.topLeft()),convertScreenToMapXY(rect.bottomRight())).normalized();
+}
+
 QPoint MapWidget::convertScreenToMapNum(QPoint pos)
 {
     return geoEngine->convertXYToNumTile(convertScreenToMapXY(pos),zoomLevel);
@@ -51,6 +58,22 @@ void MapWidget::receiveData(QByteArray array, int id)
     {
         downIds[id]->loadPixmapFromData(array);
         downIds[id]->show();
+    }
+
+    if(toSavePositions.contains(id))
+    {
+        qDebug()<<toSavePositions[id];
+        QPainter painter(&savedMap);
+        QPixmap temp;
+        temp.loadFromData(array);
+        painter.drawPixmap(toSavePositions[id],temp);
+        painter.end();
+        toSavePositions.remove(id);
+        if(toSavePositions.isEmpty())
+        {
+            QString filename = QFileDialog::getSaveFileName();
+            savedMap.save(filename);
+        }
     }
 }
 
@@ -152,6 +175,26 @@ void MapWidget::paintEvent(QPaintEvent *event)
     painter.setPen(Qt::red);
     painter.drawRect(QRect(firstCorner,secondCorner));
     painter.end();*/
+}
+
+void MapWidget::downloadSelection(int zoomLevel)
+{
+    QRect selectedXYRect = convertScreenToMapXY(selectionOverlay->getSelection());
+    QRect selectedTilesRect = QRect(geoEngine->convertXYToNumTile(selectedXYRect.topLeft(),zoomLevel),
+                                    geoEngine->convertXYToNumTile(selectedXYRect.bottomRight(),zoomLevel)).normalized();
+    int nx = (selectedTilesRect.width())*tileSize;
+    int ny = (selectedTilesRect.height())*tileSize;
+    int nb = nx*ny;
+    if(QMessageBox::question(this,tr("Telechargement"),QString("Taille de l'image : %1x%2").arg(nx).arg(ny))==QMessageBox::Ok)
+    {
+        savedMap = QPixmap(nx,ny);
+        for(int i=selectedTilesRect.topLeft().x();i<=selectedTilesRect.bottomRight().x();i++)
+            for(int j=selectedTilesRect.topLeft().y();j<=selectedTilesRect.bottomRight().y();j++)
+            {
+                toSavePositions.insert(geoEngine->downloadImage(CARTE_IGN,i,j,zoomLevel),QPoint((i-selectedTilesRect.topLeft().x())*tileSize,
+                                                                                                ny-tileSize-(j-selectedTilesRect.topLeft().y())*tileSize));
+            }
+    }
 }
 
 void MapWidget::updateMap()

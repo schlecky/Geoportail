@@ -13,7 +13,8 @@ public:
 signals:
 
 public slots:
-    void setSelection(QRect rect) {selection = rect;}
+    void setSelection(QRect rect) {selection = rect.normalized();}
+    QRect getSelection(){return selection;}
 protected :
     virtual void paintEvent(QPaintEvent *);
 

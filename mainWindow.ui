@@ -85,6 +85,13 @@
           </property>
          </spacer>
         </item>
+        <item>
+         <widget class="QPushButton" name="btnDownload">
+          <property name="text">
+           <string>Telecharger</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </item>
       <item>
