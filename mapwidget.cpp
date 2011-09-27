@@ -71,20 +71,20 @@ void MapWidget::receiveData(QByteArray array, int id)
 
     if(toSavePositions.contains(id))
     {
-        qDebug()<<toSavePositions[id];
+        //qDebug()<<toSavePositions[id];
         QPainter painter(&savedMap[mapPos.indexOf(QPoint(toSavePositions[id].x()/mapsMaxWidth,
                                                          toSavePositions[id].y()/mapsMaxHeight))]);
-        qDebug()<<QPoint(toSavePositions[id].x()/mapsMaxWidth,
-                         toSavePositions[id].y()/mapsMaxHeight);
-        qDebug()<<mapPos.indexOf(QPoint(toSavePositions[id].x()/mapsMaxWidth,
-                                        toSavePositions[id].y()/mapsMaxHeight));
+        //qDebug()<<QPoint(toSavePositions[id].x()/mapsMaxWidth,
+        //                 toSavePositions[id].y()/mapsMaxHeight);
+        //qDebug()<<mapPos.indexOf(QPoint(toSavePositions[id].x()/mapsMaxWidth,
+        //                                toSavePositions[id].y()/mapsMaxHeight));
         QPixmap temp;
         temp.loadFromData(array);
         painter.drawPixmap(QPoint(toSavePositions[id].x()%mapsMaxWidth,toSavePositions[id].y()%mapsMaxHeight),temp);
         painter.end();
         toSavePositions.remove(id);
         progressBar.setValue(progressBar.maximum()-toSavePositions.size());
-        qDebug()<<progressBar.value()<<"/"<<progressBar.maximum();
+        //qDebug()<<progressBar.value()<<"/"<<progressBar.maximum();
 
         if(toSavePositions.isEmpty())
         {
@@ -109,19 +109,25 @@ void MapWidget::mousePressEvent ( QMouseEvent * event )
 {
    switch(event->button())
    {
-       case Qt::RightButton:
-        moving = true;
-        originalPos = event->pos();
-        startingPos = event->pos();
-        selectionOverlay->hide();
-        emit(setDLEnabled(false));
-        break;
-       case Qt::LeftButton:
-        selecting=true;
-        firstCorner = event->pos();
-        selectionOverlay->show();
-        emit(setDLEnabled(true));
-        break;
+        case Qt::NoButton:
+            break;
+        case Qt::MiddleButton:
+            break;
+        case Qt::RightButton:
+            moving = true;
+            originalPos = event->pos();
+            startingPos = event->pos();
+            selectionOverlay->hide();
+            emit(setDLEnabled(false));
+            break;
+        case Qt::LeftButton:
+            selecting=true;
+            firstCorner = event->pos();
+            selectionOverlay->show();
+            emit(setDLEnabled(true));
+            break;
+        default:
+            break;
    }
 }
 
@@ -178,7 +184,6 @@ void MapWidget::mouseReleaseEvent ( QMouseEvent * event )
         selecting = false;
         repaint();
     }
-        //qDebug()<<convertScreenToMapXY(event->pos());
 }
 
 void MapWidget::resizeEvent(QResizeEvent *event)
@@ -202,13 +207,6 @@ void MapWidget::setCouche(Couche c)
     }
 }
 
-void MapWidget::paintEvent(QPaintEvent *event)
-{
-    /*QPainter painter(this);
-    painter.setPen(Qt::red);
-    painter.drawRect(QRect(firstCorner,secondCorner));
-    painter.end();*/
-}
 
 void MapWidget::downloadSelection(int zoomLevel,bool split, int maxWidth, int maxHeight)
 {
@@ -235,17 +233,17 @@ void MapWidget::downloadSelection(int zoomLevel,bool split, int maxWidth, int ma
     }
 
     QPoint dxy = geoEngine->convertPixToMapXY(QPoint(maxWidth,maxHeight),zoomLevel);
-    int dx =  dxy.x();//downloadedXYRect.width() / (nx/maxWidth); //Largeur d'une partie de carte en coordonnées carte
-    int dy =  dxy.y();//downloadedXYRect.height() / (ny/maxHeight); //Largeur d'une partie de carte en coordonnées carte
-
-    progressBar.setMaximum(nbTilesToDown);
-    progressBar.show();
-    progressBar.setValue(0);
-    progressBar.raise();
+    int dx =  dxy.x(); //Largeur d'une partie de carte en coordonnées carte
+    int dy =  dxy.y(); //Hauteur d'une partie de carte en coordonnées carte
 
     toSavePositions.clear();
-    if(QMessageBox::question(this,tr("Telechargement"),QString("Taille totale de l'image : %1x%2").arg(nx).arg(ny))==QMessageBox::Ok)
+    if(QMessageBox::question(this,tr("Telechargement"),QString("Taille totale de l'image : %1x%2").arg(nx).arg(ny),QMessageBox::Ok,QMessageBox::Cancel)==QMessageBox::Ok)
     {
+        progressBar.setMaximum(nbTilesToDown);
+        progressBar.show();
+        progressBar.setValue(0);
+        progressBar.raise();
+
         splitMaps = split;
         mapsMaxWidth = maxWidth;
         mapsMaxHeight = maxHeight;

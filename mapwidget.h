@@ -87,7 +87,7 @@ protected:
     virtual void mouseReleaseEvent ( QMouseEvent * event );
     virtual void resizeEvent(QResizeEvent *);
     virtual void wheelEvent(QWheelEvent *);
-    virtual void paintEvent(QPaintEvent *);
+    //virtual void paintEvent(QPaintEvent *);
 };
 
 #endif // MAPWIDGET_H

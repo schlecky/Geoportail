@@ -176,6 +176,8 @@ void GeoEngine::requestFinished(QNetworkReply* reply)
 
 int GeoEngine::downloadImage(Couche couche, int x, int y, int zoomLevel)
 {
-    imageRequests.append(manager->get(QNetworkRequest(genereUrl(couche, x, y, zoomLevel))));
+    QNetworkRequest request(genereUrl(couche, x, y, zoomLevel));
+    request.setAttribute(QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::PreferCache);
+    imageRequests.append(manager->get(request));
     return int(imageRequests.back());
 }
