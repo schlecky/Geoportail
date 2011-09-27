@@ -17,8 +17,7 @@ MapWidget::MapWidget(QWidget *parent) :
     connect(geoEngine,SIGNAL(dataReady(QByteArray,int)),this,SLOT(receiveData(QByteArray,int)));
     connect(geoEngine,SIGNAL(ready()),this,SLOT(updateMap()));
     geoEngine->init();
-    // Vry : 6°19'42 49°11'22
-    zoomLevel = 7;
+    zoomLevel = 10;
     couche = CARTE_IGN;
     moving = false;
     setMouseTracking(true);
@@ -27,7 +26,8 @@ MapWidget::MapWidget(QWidget *parent) :
     progressBar.setParent(this);
     progressBar.show();
     progressBar.resize(width(),30);
-    goToLongLat(6.32833,49.189444);
+
+    goToLongLat(6.17862,49.1133);
 }
 
 void MapWidget::goToLongLat(double longitude, double latitude)
@@ -71,13 +71,8 @@ void MapWidget::receiveData(QByteArray array, int id)
 
     if(toSavePositions.contains(id))
     {
-        //qDebug()<<toSavePositions[id];
         QPainter painter(&savedMap[mapPos.indexOf(QPoint(toSavePositions[id].x()/mapsMaxWidth,
                                                          toSavePositions[id].y()/mapsMaxHeight))]);
-        //qDebug()<<QPoint(toSavePositions[id].x()/mapsMaxWidth,
-        //                 toSavePositions[id].y()/mapsMaxHeight);
-        //qDebug()<<mapPos.indexOf(QPoint(toSavePositions[id].x()/mapsMaxWidth,
-        //                                toSavePositions[id].y()/mapsMaxHeight));
         QPixmap temp;
         temp.loadFromData(array);
         painter.drawPixmap(QPoint(toSavePositions[id].x()%mapsMaxWidth,toSavePositions[id].y()%mapsMaxHeight),temp);
@@ -88,9 +83,11 @@ void MapWidget::receiveData(QByteArray array, int id)
 
         if(toSavePositions.isEmpty())
         {
-            QString filename = QFileDialog::getSaveFileName();
+            QString filename = QFileDialog::getSaveFileName(this,QString("Enregistrer sous"),QString("maps"),QString("*.jpg"));
             if(!filename.isEmpty())
             {
+                if(!filename.endsWith(QString(".jpg")))
+                    filename.append(".jpg");
                 int i;
                 for (i = 0; i< savedMap.size(); i++)
                 {

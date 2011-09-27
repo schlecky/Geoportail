@@ -8,10 +8,6 @@
 //        Created:  26.08.2009 23:12:32
 //       Revision:  none
 //       Compiler:  g++
-// 
-//         Author:  Renaud Schleck (), 
-//        Company:  
-// 
 // =====================================================================================
 #include <QMessageBox>
 #include <QNetworkReply>

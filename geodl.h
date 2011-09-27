@@ -9,9 +9,6 @@
 //       Revision:  none
 //       Compiler:  g++
 // 
-//         Author:  Renaud Schleck (), 
-//        Company:  
-// 
 // =====================================================================================
 #include <QMainWindow>
 #include <QFile>
