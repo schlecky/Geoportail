@@ -24,6 +24,7 @@
 GeoDL::GeoDL()
 {
     ui.setupUi(this);
+    connect(ui.mapWidget,SIGNAL(setDLEnabled(bool)),ui.btnDownload,SLOT(setEnabled(bool)));
     //connect(mapWidget,SIGNAL(coordChange(double,double)),this,SLOT())
    // mapWidget = new MapWidget;
    // ui.vLayout->addWidget(mapWidget,2);
@@ -88,5 +89,6 @@ void GeoDL::on_mapWidget_mouseCoordChange(double longit, double latit)
 
 void GeoDL::on_btnDownload_clicked()
 {
-    ui.mapWidget->downloadSelection(6);
+    ui.mapWidget->downloadSelection(6,ui.chkSplit->isChecked(),ui.edtMaxWidth->text().toInt(),ui.edtMaxHeight->text().toInt());
 }
+
