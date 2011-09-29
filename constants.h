@@ -1,14 +1,14 @@
 #ifndef TABLES_H
 #define TABLES_H
-
+#include <QVector>
 const char tabencryptxy[62] = {'X', 'u', 'P', '4', 'N', 'G', 'Z', '8', 'n', 'g', 'I', 'c', 'j', 'K', 'M',
                                '7', 'W', 'Q', 'T', 'b', '2', 'q', 'C', '1', 'e', 'h', 'O', 'o', 't', 'L',
                                'H', '9', 'z', 's', 'm', 'a', 'w', 'J', 'S', 'Y', 'l', 'A', 'i', 'f', 'U',
                                'v', 'y', 'r', 'k', 'E', 'D', 'x', '3', '6', '5', 'F', 'p', '0', 'V', 'R',
                                'd', 'B'};
 
-const char tabencryptnbr62x[25] = {'x', 'G', '3', 'r', '8', 'k', 'T', 'Q', 'm', 'Y', 'I', 'c', 'j', 'K', 'M',
-                                   '7', 'W', 'b', '2', 'q', 't', 'L', 'H', '9', 'f'};
+const char tabencryptnbr62x[25]  = {'x', 'G', '3', 'r', '8', 'k', 'T', 'Q', 'm', 'Y', 'I', 'c', 'j', 'K', 'M',
+                                    '7', 'W', 'b', '2', 'q', 't', 'L', 'H', '9', 'f'};
 
 const char tabencryptsignes[4] = {'2', 'A', '9', 'r'};
 
@@ -41,5 +41,12 @@ typedef enum {
     TEST,
     } Couche;
 
+typedef struct {
+    int x;
+    int y;
+    int signes;
+    int zoomlevel;
+    Couche couche;
+} TuileParams;
 
 #endif // TABLES_H

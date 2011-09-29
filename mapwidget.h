@@ -36,6 +36,7 @@ public slots:
 
     //télécharge la zone selectionnee au niveau de zoom 'zoomLevel'
     void downloadSelection(int zoomLevel, bool split=false, int maxWidth=768, int maxHeight=768);
+    void saveCache(QString directory) {geoEngine->saveCachedTilesToDir(directory);}
 
 private:
     //QList<Tile*> tiles;

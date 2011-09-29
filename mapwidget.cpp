@@ -13,10 +13,11 @@ MapWidget::MapWidget(QWidget *parent) :
     QWidget(parent)
 {
     tilesRect = QRect();
-    geoEngine = new GeoEngine;
-    connect(geoEngine,SIGNAL(dataReady(QByteArray,int)),this,SLOT(receiveData(QByteArray,int)));
+    geoEngine = new GeoEngine(OFFLINE);
+    connect(geoEngine,SIGNAL(dataReady(QByteArray,int)),
+            this,SLOT(receiveData(QByteArray,int)));
     connect(geoEngine,SIGNAL(ready()),this,SLOT(updateMap()));
-    geoEngine->init();
+    geoEngine->init(QString("tiles"));
     zoomLevel = 10;
     couche = CARTE_IGN;
     moving = false;
@@ -46,7 +47,8 @@ QPoint MapWidget::convertScreenToMapXY(QPoint pos)
 
 QRect MapWidget::convertScreenToMapXY(QRect rect)
 {
-    return QRect(convertScreenToMapXY(rect.topLeft()),convertScreenToMapXY(rect.bottomRight())).normalized();
+    return QRect(convertScreenToMapXY(rect.topLeft()),
+                 convertScreenToMapXY(rect.bottomRight())).normalized();
 }
 
 QPoint MapWidget::convertScreenToMapNum(QPoint pos)
@@ -75,15 +77,17 @@ void MapWidget::receiveData(QByteArray array, int id)
                                                          toSavePositions[id].y()/mapsMaxHeight))]);
         QPixmap temp;
         temp.loadFromData(array);
-        painter.drawPixmap(QPoint(toSavePositions[id].x()%mapsMaxWidth,toSavePositions[id].y()%mapsMaxHeight),temp);
+        painter.drawPixmap(QPoint(toSavePositions[id].x()%mapsMaxWidth,
+                                  toSavePositions[id].y()%mapsMaxHeight),temp);
         painter.end();
         toSavePositions.remove(id);
         progressBar.setValue(progressBar.maximum()-toSavePositions.size());
-        //qDebug()<<progressBar.value()<<"/"<<progressBar.maximum();
 
         if(toSavePositions.isEmpty())
         {
-            QString filename = QFileDialog::getSaveFileName(this,QString("Enregistrer sous"),QString("maps"),QString("*.jpg"));
+            QString filename =
+                    QFileDialog::getSaveFileName(this,QString("Enregistrer sous"),
+                                                 QString("maps"),QString("*.jpg"));
             if(!filename.isEmpty())
             {
                 if(!filename.endsWith(QString(".jpg")))
@@ -94,7 +98,8 @@ void MapWidget::receiveData(QByteArray array, int id)
                      QString fname = filename;
                      fname.replace(QString(".jpg"),QString("")).append(QString("%1-%2.jpg").arg(mapPos[i].x()).arg(mapPos[i].y()));
                      savedMap[i].save(fname);
-                     saveCalibrationToFile(fname.replace(QString(".jpg"),QString(".map")),mapRect[i],savedMap[i].size());
+                     saveCalibrationToFile(fname.replace(QString(".jpg"),QString(".map")),
+                                           mapRect[i],savedMap[i].size());
                 }
             }
             progressBar.hide();
@@ -145,7 +150,8 @@ void MapWidget::wheelEvent(QWheelEvent * event)
 void MapWidget::mouseMoveEvent ( QMouseEvent * event )
 {
     QPoint xy = convertScreenToMapXY(event->pos());
-    emit(mouseCoordChange(geoEngine->convertToLongitude(xy.x()),geoEngine->convertToLatitude(xy.y())));
+    emit(mouseCoordChange(geoEngine->convertToLongitude(xy.x()),
+                          geoEngine->convertToLatitude(xy.y())));
 
     if(moving)
     {
@@ -173,7 +179,8 @@ void MapWidget::mouseReleaseEvent ( QMouseEvent * event )
         temp.setY(-temp.y());
         center+=temp/xRatios[zoomLevel-1];
         updateMap();
-        emit(coordChange(geoEngine->convertToLongitude(center.x()),geoEngine->convertToLatitude(center.y())));
+        emit(coordChange(geoEngine->convertToLongitude(center.x()),
+                         geoEngine->convertToLatitude(center.y())));
     }
 
     if(event->button()==Qt::LeftButton)
@@ -234,7 +241,9 @@ void MapWidget::downloadSelection(int zoomLevel,bool split, int maxWidth, int ma
     int dy =  dxy.y(); //Hauteur d'une partie de carte en coordonnées carte
 
     toSavePositions.clear();
-    if(QMessageBox::question(this,tr("Telechargement"),QString("Taille totale de l'image : %1x%2").arg(nx).arg(ny),QMessageBox::Ok,QMessageBox::Cancel)==QMessageBox::Ok)
+    if(QMessageBox::question(this,tr("Telechargement"),
+                             QString("Taille totale de l'image : %1x%2").arg(nx).arg(ny),
+                             QMessageBox::Ok,QMessageBox::Cancel)==QMessageBox::Ok)
     {
         progressBar.setMaximum(nbTilesToDown);
         progressBar.show();
@@ -284,8 +293,11 @@ void MapWidget::downloadSelection(int zoomLevel,bool split, int maxWidth, int ma
         for(int i=selectedTilesRect.topLeft().x();i<=selectedTilesRect.bottomRight().x();i++)
             for(int j=selectedTilesRect.topLeft().y();j<=selectedTilesRect.bottomRight().y();j++)
             {
-                toSavePositions.insert(geoEngine->downloadImage(CARTE_IGN,i,j,zoomLevel),QPoint((i-selectedTilesRect.topLeft().x())*tileSize,
-                                                                                                ny-tileSize-(j-selectedTilesRect.topLeft().y())*tileSize));
+                toSavePositions.insert(geoEngine->downloadImage(CARTE_IGN,i,j,zoomLevel),
+                                       QPoint(
+                                           (i-selectedTilesRect.topLeft().x())*tileSize,
+                                           ny-tileSize-(j-selectedTilesRect.topLeft().y())*tileSize)
+                                       );
             }
     }
 }
@@ -351,7 +363,8 @@ void MapWidget::updateMap()
                 tempTile->setNum(QPoint(i,j));
                 QPoint p = convertMapToScreenXY(geoEngine->convertNumTileToXY(tempTile->getNum(),zoomLevel));
                 tempTile->move(p);
-                downIds.insert(geoEngine->downloadImage(couche,tempTile->getNum().x(),tempTile->getNum().y(),zoomLevel),tempTile);
+                downIds.insert(geoEngine->downloadImage(couche,tempTile->getNum().x(),
+                                                        tempTile->getNum().y(),zoomLevel),tempTile);
                 tiles.append(tempTile);
             }
         }

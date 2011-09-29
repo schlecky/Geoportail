@@ -1,14 +1,16 @@
 #include "geoengine.h"
 #include <math.h>
 #include <QDebug>
+#include <QDirIterator>
+#include <QTimer>
 
-GeoEngine::GeoEngine()
+GeoEngine::GeoEngine(GeoEngineMode m)
 {
     manager = new QNetworkAccessManager(this);
     cache = new QNetworkDiskCache();
-    cache->setCacheDirectory(QString(".cache"));
-    manager->setCache(cache);
-    connect(manager,SIGNAL(finished(QNetworkReply*)),this, SLOT(requestFinished(QNetworkReply*)));
+
+    mode = m;
+
 
     // Les constantes pour les differents types d'images
     csteCouche.resize(10);
@@ -27,8 +29,90 @@ GeoEngine::GeoEngine()
 
     csteCouche[TEST] = QString("8fG");
     formatCouche[TEST] = QString(".png");
-    //qDebug()<<genereUrl(PHOTOS,3700,42717,4).toString();
+
+    my_tabencryptxy.resize(62);
+    for(int i =0; i<62; i++)
+        my_tabencryptxy[i] = tabencryptxy[i];
+
+    my_tabencryptnbr62x.resize(25);
+    for(int i=0; i<25;i++)
+        my_tabencryptnbr62x[i] = tabencryptnbr62x[i];
+
+    my_tabencryptsignes.resize(4);
+    for(int i=0;i<4;i++)
+        my_tabencryptsignes[i] = tabencryptsignes[i];
 }
+
+void GeoEngine::saveCachedTilesToDir(QString directory)
+{
+    QNetworkDiskCache* cache = (QNetworkDiskCache*)(manager->cache());
+    QDirIterator it(cache->cacheDirectory()+QString("http/"));
+    while(it.hasNext())
+    {
+        it.next();
+        if(it.fileInfo().isFile())
+        {
+            //qDebug()<<it.fileName();
+            QNetworkCacheMetaData metaData = cache->fileMetaData(it.filePath());
+            QFileInfo info(metaData.url().toString());
+
+            //qDebug()<<directory+QString("/")+info.fileName();
+            QString relative = convertTileToDir(extractParamsFromFilename(info.fileName()));
+            if(relative == QString("E"))
+                continue;
+            QFileInfo fileinfo(locateFile(directory,info.fileName()));
+            QDir dir(fileinfo.absolutePath());
+            if(!dir.exists())
+                dir.mkpath(dir.path());
+            if(!fileinfo.exists())
+            {
+                QFile cacheFile(fileinfo.filePath());
+                cacheFile.open(QIODevice::WriteOnly);
+                QIODevice* data = cache->data(metaData.url());
+                if(data)
+                {
+                    cacheFile.write(data->readAll());
+                    cacheFile.close();
+                    delete data;
+                }
+            }
+        }
+    }
+}
+
+QString GeoEngine::locateFile(QString baseDir, QString filename)
+{
+    return baseDir+QString("/")+convertTileToDir(extractParamsFromFilename(filename))+filename;
+}
+
+QString GeoEngine::convertTileToDir(TuileParams params)
+{
+    QString dir;
+    switch(params.couche)
+    {
+        case CARTE_IGN:
+            dir += QString("CARTE_IGN/");
+            break;
+        case PHOTOS:
+            dir+= QString("PHOTOS/");
+            break;
+        case CASSINI :
+            dir+= QString("CASSINI/");
+            break;
+        case CADASTRE :
+            dir+=QString("CADASTRE/");
+            break;
+        default :
+            return QString("E");
+    }
+    dir.append(QString("%1/").arg(QString().sprintf("%02d",params.zoomlevel)));
+    dir.append(QString("%1/").arg(params.signes));
+    dir.append(QString("%1/").arg(QString().sprintf("%03d",int(params.x/100))));
+    dir.append(QString("%1/").arg(QString().sprintf("%03d",params.x%100)));
+    dir.append(QString("%1/").arg(QString().sprintf("%03d",int(params.y/100))));
+    return dir;
+}
+
 
 QPoint GeoEngine::convertLongLatToXY(double longi, double lati)
 {
@@ -49,12 +133,14 @@ double GeoEngine::convertToLatitude(double x)
 
 QPoint GeoEngine::convertXYToNumTile(QPoint xy, int zoomLevel)
 {
-    return QPoint(int(xy.x()*xRatios[zoomLevel-1]/tileSize),int(xy.y()*xRatios[zoomLevel-1]/tileSize));
+    return QPoint(floor(xy.x()*xRatios[zoomLevel-1]/tileSize),
+                  floor(xy.y()*xRatios[zoomLevel-1]/tileSize));
 }
 
 QPoint GeoEngine::convertNumTileToXY(QPoint xy, int zoomLevel)
 {
-    return QPoint(int(xy.x()*tileSize/xRatios[zoomLevel-1]),int((xy.y()+1)*tileSize/xRatios[zoomLevel-1]));
+    return QPoint(int(xy.x()*tileSize/xRatios[zoomLevel-1]),
+                  int((xy.y()+1)*tileSize/xRatios[zoomLevel-1]));
 }
 
 QPoint GeoEngine::convertPixToMapXY(QPoint pix,int zoomLevel)
@@ -62,11 +148,26 @@ QPoint GeoEngine::convertPixToMapXY(QPoint pix,int zoomLevel)
     return pix/xRatios[zoomLevel-1];
 }
 
-void GeoEngine::init()
+void GeoEngine::init(QString dir)
 {
-    initialized = false;
-    initReply = manager->get(QNetworkRequest(QUrl("http://www.geoportail.fr")));
-    qDebug()<<"Initialisation...";
+    switch(mode)
+    {
+        case CONNECTED:
+            cache->setCacheDirectory(QString(".cache"));
+            manager->setCache(cache);
+            connect(manager,SIGNAL(finished(QNetworkReply*)),
+                    this, SLOT(requestFinished(QNetworkReply*)));
+            initialized = false;
+            initReply = manager->get(QNetworkRequest(QUrl("http://www.geoportail.fr")));
+            qDebug()<<"Mode connecté";
+            break;
+         case OFFLINE:
+            qDebug()<<"Mode off-line";
+            tilesDir = dir;
+            compteur = 0;
+            break;
+    }
+
 }
 
 QString GeoEngine::encryptNbBase(int nb, int base)
@@ -76,6 +177,18 @@ QString GeoEngine::encryptNbBase(int nb, int base)
     {
         result.prepend(tabencryptxy[nb%base]);
         nb = int(nb/base);
+    }
+    return result;
+}
+
+int GeoEngine::decryptNbBase(QString nb, int base)
+{
+    int fact = 1;
+    int result = 0;
+    for(int i=nb.size()-1;i>=0;i--)
+    {
+        result+=my_tabencryptxy.indexOf(nb[i].toAscii())*fact;
+        fact*=base;
     }
     return result;
 }
@@ -176,8 +289,57 @@ void GeoEngine::requestFinished(QNetworkReply* reply)
 
 int GeoEngine::downloadImage(Couche couche, int x, int y, int zoomLevel)
 {
-    QNetworkRequest request(genereUrl(couche, x, y, zoomLevel));
-    request.setAttribute(QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::PreferCache);
-    imageRequests.append(manager->get(request));
-    return int(imageRequests.back());
+    int result=-1;
+    switch(mode)
+    {
+        case CONNECTED :
+        {
+            QNetworkRequest request(genereUrl(couche, x, y, zoomLevel));
+            request.setAttribute(QNetworkRequest::CacheLoadControlAttribute,
+                                 QNetworkRequest::PreferCache);
+            imageRequests.append(manager->get(request));
+            result = int(imageRequests.back());
+            break;
+        }
+        case OFFLINE :
+            QFileInfo info(genereUrl(couche, x, y, zoomLevel).toString());
+            info = QFileInfo(locateFile(tilesDir,info.fileName()));
+            if(!info.exists())
+            {
+                info = QFileInfo(QString("noImg.jpg"));
+            }
+            QFile fich(info.filePath());
+            fich.open(QIODevice::ReadOnly);
+            toSendId.enqueue(compteur++);
+            toSend.enqueue(fich.readAll());
+            fich.close();
+            QTimer::singleShot(10,this,SLOT(sendFirstData()));
+            result = toSendId.back();
+            break;
+    }
+    return result;
+}
+
+void GeoEngine::sendFirstData()
+{
+    emit(dataReady(toSend.dequeue(),toSendId.dequeue()));
+}
+
+TuileParams GeoEngine::extractParamsFromFilename(QString filename)
+{
+    TuileParams params;
+    filename.remove(QString("maps"));
+    filename.remove(filename.size()-4,4); //remove extension
+    params.couche = (Couche)csteCouche.indexOf(filename.left(3));
+    filename.remove(0,3);
+    params.zoomlevel = my_tabencryptnbr62x.indexOf(filename[0].toAscii());
+    filename.remove(0,1);
+    params.signes = my_tabencryptsignes.indexOf(filename[0].toAscii());
+    filename.remove(0,1);
+    int tailleX = my_tabencryptnbr62x.indexOf(filename[0].toAscii());
+    filename.remove(0,1);
+    params.x = decryptNbBase(filename.left(tailleX),62);
+    filename.remove(0,tailleX);
+    params.y = decryptNbBase(filename,62);
+    return params;
 }

@@ -13,6 +13,7 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QPainter>
+#include <QFileDialog>
 
 #include "geodl.h"
 
@@ -88,3 +89,12 @@ void GeoDL::on_btnDownload_clicked()
     ui.mapWidget->downloadSelection(6,ui.chkSplit->isChecked(),ui.edtMaxWidth->text().toInt(),ui.edtMaxHeight->text().toInt());
 }
 
+
+void GeoDL::on_pushButton_clicked()
+{
+    QString directory = QFileDialog::getExistingDirectory(this);
+    if(!directory.isEmpty())
+    {
+        ui.mapWidget->saveCache(directory);
+    }
+}

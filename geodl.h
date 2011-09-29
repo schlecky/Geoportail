@@ -41,4 +41,5 @@ private slots:
         void on_mapWidget_coordChange(double,double);
         void on_mapWidget_mouseCoordChange(double,double);
         void on_btnDownload_clicked();
+        void on_pushButton_clicked();
 };
