@@ -7,6 +7,7 @@
 #include <QUrl>
 #include <QVector>
 #include <QString>
+#include <QProgressBar>
 #include <QQueue>
 #include "constants.h"
 
@@ -20,7 +21,7 @@ class GeoEngine : public QWidget
     Q_OBJECT
 public:
     GeoEngine(GeoEngineMode mode=CONNECTED);
-    void init(QString dir="");                  // si on est en mode offline il faut un repertoire
+    void init();                  // si on est en mode offline il faut un repertoire
     QPoint convertLongLatToXY(double longi, double lati);
     double convertToLongitude(double x);
     double convertToLatitude(double y);
@@ -29,8 +30,12 @@ public:
     QPoint convertPixToMapXY(QPoint pix,int zoomLevel);
     int downloadImage(Couche couche, int x, int y, int zoomLevel);      // telecharge une image et renvoie l'identification du téléchargement
     bool isInitialized(){return initialized;}
-    void saveCachedTilesToDir(QString directory);
+    void saveCachedTiles(QProgressBar* progressbar);
     TuileParams extractParamsFromFilename(QString filename);
+
+public slots:
+    void setAutoSave(bool a) {autoSave = a;}
+    void setMode(GeoEngineMode m) {mode =m;}
 
 signals :
         void dataReady(QByteArray data, int id);        // les données pour l'id sont pretes
@@ -46,6 +51,7 @@ private:
     int decryptNbBase(QString nb, int base);
     QString convertTileToDir(TuileParams params);
     QString locateFile(QString baseDir,QString filename);
+    void saveTileToDisk(QUrl url, QByteArray dat);
     QNetworkAccessManager* manager;
     QNetworkDiskCache* cache;
     bool connected;
@@ -73,6 +79,7 @@ private:
     QString tilesDir;
     GeoEngineMode mode;
     bool initialized;
+    bool autoSave;
 };
 
 #endif // GEOENGINE_H

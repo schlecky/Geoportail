@@ -13,11 +13,11 @@ MapWidget::MapWidget(QWidget *parent) :
     QWidget(parent)
 {
     tilesRect = QRect();
-    geoEngine = new GeoEngine(OFFLINE);
+    geoEngine = new GeoEngine(CONNECTED);
     connect(geoEngine,SIGNAL(dataReady(QByteArray,int)),
             this,SLOT(receiveData(QByteArray,int)));
     connect(geoEngine,SIGNAL(ready()),this,SLOT(updateMap()));
-    geoEngine->init(QString("tiles"));
+    geoEngine->init();
     zoomLevel = 10;
     couche = CARTE_IGN;
     moving = false;

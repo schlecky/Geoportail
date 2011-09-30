@@ -92,9 +92,15 @@ void GeoDL::on_btnDownload_clicked()
 
 void GeoDL::on_pushButton_clicked()
 {
-    QString directory = QFileDialog::getExistingDirectory(this);
-    if(!directory.isEmpty())
-    {
-        ui.mapWidget->saveCache(directory);
-    }
+    ui.mapWidget->saveCache();
+}
+
+void GeoDL::on_chkAutoSave_toggled(bool checked)
+{
+    ui.mapWidget->setAutoSave(checked);
+}
+
+void GeoDL::on_comboBox_currentIndexChanged(int index)
+{
+    ui.mapWidget->setGeoEngineMode(GeoEngineMode(index));
 }

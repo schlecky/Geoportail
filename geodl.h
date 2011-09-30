@@ -42,4 +42,6 @@ private slots:
         void on_mapWidget_mouseCoordChange(double,double);
         void on_btnDownload_clicked();
         void on_pushButton_clicked();
+        void on_chkAutoSave_toggled(bool checked);
+        void on_comboBox_currentIndexChanged(int index);
 };

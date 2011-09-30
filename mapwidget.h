@@ -13,6 +13,7 @@
 #include "geoengine.h"
 #include "constants.h"
 #include "overlay.h"
+#include <QProgressBar>
 
 class MapWidget : public QWidget
 {
@@ -36,7 +37,9 @@ public slots:
 
     //télécharge la zone selectionnee au niveau de zoom 'zoomLevel'
     void downloadSelection(int zoomLevel, bool split=false, int maxWidth=768, int maxHeight=768);
-    void saveCache(QString directory) {geoEngine->saveCachedTilesToDir(directory);}
+    void saveCache() {geoEngine->saveCachedTiles(&progressBar);}
+    void setAutoSave(bool a){if(geoEngine){geoEngine->setAutoSave(a);}}
+    void setGeoEngineMode(GeoEngineMode mode) {if(geoEngine){geoEngine->setMode(mode);}}
 
 private:
     //QList<Tile*> tiles;
@@ -72,6 +75,7 @@ private:
     bool moving;
     bool selecting;
     bool splitMaps;
+    bool autoSave;
 
     int mapsMaxWidth;
     int mapsMaxHeight;
