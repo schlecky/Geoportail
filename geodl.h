@@ -44,4 +44,6 @@ private slots:
         void on_pushButton_clicked();
         void on_chkAutoSave_toggled(bool checked);
         void on_comboBox_currentIndexChanged(int index);
+        void on_sliderDisp_valueChanged(int value);
+        void on_sliderDown_valueChanged(int value);
 };

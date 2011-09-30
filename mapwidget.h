@@ -34,9 +34,10 @@ public slots:
    // void startDownload();
     void updateMap();
     void goToLongLat(double longit, double latit);
+    void setZoomLevel(int zoomLevel);
 
     //télécharge la zone selectionnee au niveau de zoom 'zoomLevel'
-    void downloadSelection(int zoomLevel, bool split=false, int maxWidth=768, int maxHeight=768);
+    void downloadSelection(int zoomLevel, bool split=false, int maxWidth=768, int maxHeight=768, bool tilesonly=false);
     void saveCache() {geoEngine->saveCachedTiles(&progressBar);}
     void setAutoSave(bool a){if(geoEngine){geoEngine->setAutoSave(a);}}
     void setGeoEngineMode(GeoEngineMode mode) {if(geoEngine){geoEngine->setMode(mode);}}
@@ -79,6 +80,8 @@ private:
 
     int mapsMaxWidth;
     int mapsMaxHeight;
+
+    bool downTilesOnly;
 
     QPoint originalPos;
     QPoint startingPos;

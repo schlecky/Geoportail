@@ -73,33 +73,39 @@ void MapWidget::receiveData(QByteArray array, int id)
 
     if(toSavePositions.contains(id))
     {
-        QPainter painter(&savedMap[mapPos.indexOf(QPoint(toSavePositions[id].x()/mapsMaxWidth,
-                                                         toSavePositions[id].y()/mapsMaxHeight))]);
-        QPixmap temp;
-        temp.loadFromData(array);
-        painter.drawPixmap(QPoint(toSavePositions[id].x()%mapsMaxWidth,
-                                  toSavePositions[id].y()%mapsMaxHeight),temp);
-        painter.end();
+        if(!downTilesOnly)
+        {
+            QPainter painter(&savedMap[mapPos.indexOf(QPoint(toSavePositions[id].x()/mapsMaxWidth,
+                                                             toSavePositions[id].y()/mapsMaxHeight))]);
+            QPixmap temp;
+            temp.loadFromData(array);
+            painter.drawPixmap(QPoint(toSavePositions[id].x()%mapsMaxWidth,
+                                      toSavePositions[id].y()%mapsMaxHeight),temp);
+            painter.end();
+        }
         toSavePositions.remove(id);
         progressBar.setValue(progressBar.maximum()-toSavePositions.size());
 
         if(toSavePositions.isEmpty())
         {
-            QString filename =
-                    QFileDialog::getSaveFileName(this,QString("Enregistrer sous"),
-                                                 QString("maps"),QString("*.jpg"));
-            if(!filename.isEmpty())
+            if(!downTilesOnly)
             {
-                if(!filename.endsWith(QString(".jpg")))
-                    filename.append(".jpg");
-                int i;
-                for (i = 0; i< savedMap.size(); i++)
+                QString filename =
+                        QFileDialog::getSaveFileName(this,QString("Enregistrer sous"),
+                                                     QString("maps"),QString("*.jpg"));
+                if(!filename.isEmpty())
                 {
-                     QString fname = filename;
-                     fname.replace(QString(".jpg"),QString("")).append(QString("%1-%2.jpg").arg(mapPos[i].x()).arg(mapPos[i].y()));
-                     savedMap[i].save(fname);
-                     saveCalibrationToFile(fname.replace(QString(".jpg"),QString(".map")),
-                                           mapRect[i],savedMap[i].size());
+                    if(!filename.endsWith(QString(".jpg")))
+                        filename.append(".jpg");
+                    int i;
+                    for (i = 0; i< savedMap.size(); i++)
+                    {
+                         QString fname = filename;
+                         fname.replace(QString(".jpg"),QString("")).append(QString("%1-%2.jpg").arg(mapPos[i].x()).arg(mapPos[i].y()));
+                         savedMap[i].save(fname);
+                         saveCalibrationToFile(fname.replace(QString(".jpg"),QString(".map")),
+                                               mapRect[i],savedMap[i].size());
+                    }
                 }
             }
             progressBar.hide();
@@ -135,9 +141,15 @@ void MapWidget::mousePressEvent ( QMouseEvent * event )
 
 void MapWidget::wheelEvent(QWheelEvent * event)
 {
-    zoomLevel -= event->delta()/120;
-    if(zoomLevel<1)
-        zoomLevel=1;
+    int zoom = zoomLevel - event->delta()/120;
+    if(zoom<1)
+        zoom=1;
+    setZoomLevel(zoom);
+}
+
+void MapWidget::setZoomLevel(int zoom)
+{
+    zoomLevel = zoom;
     tilesRect = QRect();
     while(tiles.size())
         delete tiles.takeFirst();
@@ -212,7 +224,7 @@ void MapWidget::setCouche(Couche c)
 }
 
 
-void MapWidget::downloadSelection(int zoomLevel,bool split, int maxWidth, int maxHeight)
+void MapWidget::downloadSelection(int zoomLevel,bool split, int maxWidth, int maxHeight, bool tilesOnly)
 {
     QRect selectedXYRect = convertScreenToMapXY(selectionOverlay->getSelection());
     QRect selectedTilesRect = QRect(geoEngine->convertXYToNumTile(selectedXYRect.topLeft(),zoomLevel),
@@ -256,48 +268,50 @@ void MapWidget::downloadSelection(int zoomLevel,bool split, int maxWidth, int ma
         savedMap.clear();
         mapRect.clear();
         mapPos.clear();
-
-        // Prépare les cartes splitées
-        for(int i=0;i<nx/maxWidth;i++)
-            for(int j=0;j<ny/maxHeight;j++)
-            {
-                savedMap.append(QPixmap(maxWidth,maxHeight));
-                mapRect.append(QRect(downloadedXYRect.topLeft()+QPoint(i*dx,downloadedXYRect.height()%dy+(ny/maxHeight-j-1)*dy),
-                                     QSize(dx,dy)));
-                mapPos.append(QPoint(i,j));
-            }
-        if(nx%maxWidth!=0)
-            for(int j=0;j<ny/maxHeight;j++)
-            {
-                savedMap.append(QPixmap(nx%maxWidth,maxHeight));
-                mapRect.append(QRect(downloadedXYRect.topLeft()+QPoint(nx/maxWidth*dx,downloadedXYRect.height()%dy+(ny/maxHeight-j-1)*dy),
-                                     QSize(downloadedXYRect.width()%dx,dy)));
-                mapPos.append(QPoint(nx/maxWidth,j));
-            }
-        if(ny%maxHeight!=0)
-            for(int i=0;i<nx/maxWidth;i++)
-            {
-                savedMap.append(QPixmap(maxWidth,ny%maxHeight));
-                mapRect.append(QRect(downloadedXYRect.bottomLeft()+QPoint(i*dx,0),
-                                     QSize(dx,downloadedXYRect.height()%dy)));
-                mapPos.append(QPoint(i,ny/maxHeight));
-            }
-        if((ny%maxHeight!=0) && (nx%maxWidth!=0))
+        downTilesOnly = tilesOnly;
+        if(!tilesOnly)
         {
-            savedMap.append(QPixmap(nx%maxWidth,ny%maxHeight));
-            mapRect.append(QRect(downloadedXYRect.topLeft()+QPoint(nx/maxWidth*dx,0),
-                                 QSize(downloadedXYRect.width()%dx,downloadedXYRect.height()%dy)));
-            mapPos.append(QPoint(nx/maxWidth,ny/maxHeight));
+            // Prépare les cartes splitées
+            for(int i=0;i<nx/maxWidth;i++)
+                for(int j=0;j<ny/maxHeight;j++)
+                {
+                    savedMap.append(QPixmap(maxWidth,maxHeight));
+                    mapRect.append(QRect(downloadedXYRect.topLeft()+QPoint(i*dx,downloadedXYRect.height()%dy+(ny/maxHeight-j-1)*dy),
+                                         QSize(dx,dy)));
+                    mapPos.append(QPoint(i,j));
+                }
+            if(nx%maxWidth!=0)
+                for(int j=0;j<ny/maxHeight;j++)
+                {
+                    savedMap.append(QPixmap(nx%maxWidth,maxHeight));
+                    mapRect.append(QRect(downloadedXYRect.topLeft()+QPoint(nx/maxWidth*dx,downloadedXYRect.height()%dy+(ny/maxHeight-j-1)*dy),
+                                         QSize(downloadedXYRect.width()%dx,dy)));
+                    mapPos.append(QPoint(nx/maxWidth,j));
+                }
+            if(ny%maxHeight!=0)
+                for(int i=0;i<nx/maxWidth;i++)
+                {
+                    savedMap.append(QPixmap(maxWidth,ny%maxHeight));
+                    mapRect.append(QRect(downloadedXYRect.bottomLeft()+QPoint(i*dx,0),
+                                         QSize(dx,downloadedXYRect.height()%dy)));
+                    mapPos.append(QPoint(i,ny/maxHeight));
+                }
+            if((ny%maxHeight!=0) && (nx%maxWidth!=0))
+            {
+                savedMap.append(QPixmap(nx%maxWidth,ny%maxHeight));
+                mapRect.append(QRect(downloadedXYRect.topLeft()+QPoint(nx/maxWidth*dx,0),
+                                     QSize(downloadedXYRect.width()%dx,downloadedXYRect.height()%dy)));
+                mapPos.append(QPoint(nx/maxWidth,ny/maxHeight));
+            }
         }
-
         for(int i=selectedTilesRect.topLeft().x();i<=selectedTilesRect.bottomRight().x();i++)
             for(int j=selectedTilesRect.topLeft().y();j<=selectedTilesRect.bottomRight().y();j++)
             {
-                toSavePositions.insert(geoEngine->downloadImage(CARTE_IGN,i,j,zoomLevel),
-                                       QPoint(
-                                           (i-selectedTilesRect.topLeft().x())*tileSize,
-                                           ny-tileSize-(j-selectedTilesRect.topLeft().y())*tileSize)
-                                       );
+                int id = geoEngine->downloadImage(CARTE_IGN,i,j,zoomLevel);
+                    toSavePositions.insert(id,QPoint(
+                                               (i-selectedTilesRect.topLeft().x())*tileSize,
+                                               ny-tileSize-(j-selectedTilesRect.topLeft().y())*tileSize)
+                                           );
             }
     }
 }

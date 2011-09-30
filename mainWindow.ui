@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1009</width>
-    <height>537</height>
+    <width>1106</width>
+    <height>555</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -308,11 +308,93 @@
            </property>
            <property name="sizeHint" stdset="0">
             <size>
-             <width>98</width>
+             <width>54</width>
              <height>20</height>
             </size>
            </property>
           </spacer>
+         </item>
+         <item>
+          <widget class="QFrame" name="frame_6">
+           <property name="minimumSize">
+            <size>
+             <width>140</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::StyledPanel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_3">
+            <property name="spacing">
+             <number>1</number>
+            </property>
+            <property name="margin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QSlider" name="sliderDisp">
+              <property name="maximum">
+               <number>14</number>
+              </property>
+              <property name="pageStep">
+               <number>1</number>
+              </property>
+              <property name="value">
+               <number>10</number>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="tickPosition">
+               <enum>QSlider::TicksBelow</enum>
+              </property>
+              <property name="tickInterval">
+               <number>1</number>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="lblZoomDisp">
+              <property name="text">
+               <string>Affichage : 10</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSlider" name="sliderDown">
+              <property name="maximum">
+               <number>14</number>
+              </property>
+              <property name="pageStep">
+               <number>1</number>
+              </property>
+              <property name="value">
+               <number>7</number>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="tickPosition">
+               <enum>QSlider::TicksBelow</enum>
+              </property>
+              <property name="tickInterval">
+               <number>1</number>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="lblZoomDown">
+              <property name="text">
+               <string>Téléchargement :  7</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
          </item>
          <item>
           <widget class="QFrame" name="frame_2">
@@ -505,6 +587,9 @@
               <property name="text">
                <string>autoSave</string>
               </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
              </widget>
             </item>
            </layout>
@@ -535,7 +620,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1009</width>
+     <width>1106</width>
      <height>25</height>
     </rect>
    </property>

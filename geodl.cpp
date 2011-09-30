@@ -2,7 +2,7 @@
 // 
 //       Filename:  mainwindow.cpp
 // 
-//    Description:  Telechargement d'images de gÃ©oportail
+//    Description:  Telechargement d'images de géoportail
 // 
 //        Version:  1.0
 //        Created:  26.08.2009 23:12:32
@@ -86,7 +86,9 @@ void GeoDL::on_mapWidget_mouseCoordChange(double longit, double latit)
 
 void GeoDL::on_btnDownload_clicked()
 {
-    ui.mapWidget->downloadSelection(6,ui.chkSplit->isChecked(),ui.edtMaxWidth->text().toInt(),ui.edtMaxHeight->text().toInt());
+    ui.mapWidget->downloadSelection(ui.sliderDown->value(),ui.chkSplit->isChecked(),
+                                    ui.edtMaxWidth->text().toInt(),ui.edtMaxHeight->text().toInt(),
+                                    ui.chkTilesOnly->isChecked());
 }
 
 
@@ -103,4 +105,15 @@ void GeoDL::on_chkAutoSave_toggled(bool checked)
 void GeoDL::on_comboBox_currentIndexChanged(int index)
 {
     ui.mapWidget->setGeoEngineMode(GeoEngineMode(index));
+}
+
+void GeoDL::on_sliderDisp_valueChanged(int value)
+{
+    ui.lblZoomDisp->setText(QString("Affichage : %1").arg(value));
+    ui.mapWidget->setZoomLevel(value);
+}
+
+void GeoDL::on_sliderDown_valueChanged(int value)
+{
+    ui.lblZoomDown->setText(QString("Téléchargement : %1").arg(value).toAscii());
 }
