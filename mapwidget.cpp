@@ -1,5 +1,6 @@
 #include "mapwidget.h"
 #include "constants.h"
+#include "geodl.h"
 #include <QDebug>
 #include <QPainter>
 #include <QMessageBox>
@@ -17,17 +18,21 @@ MapWidget::MapWidget(QWidget *parent) :
     connect(geoEngine,SIGNAL(dataReady(QByteArray,int)),
             this,SLOT(receiveData(QByteArray,int)));
     connect(geoEngine,SIGNAL(ready()),this,SLOT(updateMap()));
+    connect(geoEngine,SIGNAL(geocodeReceived(QPointF)),this,SLOT(receiveGeocode(QPointF)));
     geoEngine->init();
     zoomLevel = 10;
     couche = CARTE_IGN;
     moving = false;
     setMouseTracking(true);
     selectionOverlay = new Overlay(this);
-
+    selectionOverlay->setScaleRatio(1/(factRatio*xRatios[zoomLevel-1]));
     progressBar.setParent(this);
     progressBar.show();
     progressBar.resize(width(),30);
+    selection =  SEL_LIGNE;
+    selectionOverlay->setSelectionType(SEL_LIGNE);
 
+    //Metz
     goToLongLat(6.17862,49.1133);
 }
 
@@ -125,14 +130,19 @@ void MapWidget::mousePressEvent ( QMouseEvent * event )
             moving = true;
             originalPos = event->pos();
             startingPos = event->pos();
-            selectionOverlay->hide();
+            selectionOverlay->hideSelection();
             emit(setDLEnabled(false));
             break;
         case Qt::LeftButton:
             selecting=true;
-            firstCorner = event->pos();
-            selectionOverlay->show();
-            emit(setDLEnabled(true));
+            selectionOverlay->clear();
+            selectionOverlay->addPoint(event->pos());
+            selectionOverlay->showSelection();
+            if(selection == SEL_TELECHARGEMENT)
+            {
+                firstCorner = event->pos();
+                emit(setDLEnabled(true));
+            }
             break;
         default:
             break;
@@ -142,9 +152,10 @@ void MapWidget::mousePressEvent ( QMouseEvent * event )
 void MapWidget::wheelEvent(QWheelEvent * event)
 {
     int zoom = zoomLevel - event->delta()/120;
-    if(zoom<1)
-        zoom=1;
-    setZoomLevel(zoom);
+    if(zoom<zoomLevelMin[couche])
+        zoom=zoomLevelMin[couche];
+    else
+        setZoomLevel(zoom);
 }
 
 void MapWidget::setZoomLevel(int zoom)
@@ -154,8 +165,10 @@ void MapWidget::setZoomLevel(int zoom)
     while(tiles.size())
         delete tiles.takeFirst();
     downIds.clear();
-    selectionOverlay->hide();
+    selectionOverlay->hideSelection();
+    selectionOverlay->setScaleRatio(1/(factRatio*xRatios[zoomLevel-1]));
     emit(setDLEnabled(false));
+    emit(zoomChanged(zoomLevel));
     updateMap();
 }
 
@@ -177,8 +190,10 @@ void MapWidget::mouseMoveEvent ( QMouseEvent * event )
     if(selecting)
     {
         secondCorner = event->pos();
-        selectionOverlay->setSelection(QRect(firstCorner,secondCorner));
+        selectionOverlay->addPoint(event->pos());
+        //selectionOverlay->setSelection(QRect(firstCorner,secondCorner));
         selectionOverlay->update();
+        emit(afficheDist(selectionOverlay->dist()));
     }
 }
 
@@ -219,6 +234,8 @@ void MapWidget::setCouche(Couche c)
         while(tiles.size())
             delete tiles.takeFirst();
         downIds.clear();
+        if(zoomLevel<zoomLevelMin[couche])
+            zoomLevel=zoomLevelMin[couche];
         updateMap();
     }
 }
@@ -226,7 +243,8 @@ void MapWidget::setCouche(Couche c)
 
 void MapWidget::downloadSelection(int zoomLevel,bool split, int maxWidth, int maxHeight, bool tilesOnly)
 {
-    QRect selectedXYRect = convertScreenToMapXY(selectionOverlay->getSelection());
+    QPolygon sel = selectionOverlay->getSelection();
+    QRect selectedXYRect = convertScreenToMapXY(QRect(sel[0],sel[1]));
     QRect selectedTilesRect = QRect(geoEngine->convertXYToNumTile(selectedXYRect.topLeft(),zoomLevel),
                                     geoEngine->convertXYToNumTile(selectedXYRect.bottomRight(),zoomLevel)).normalized();
 
@@ -249,8 +267,8 @@ void MapWidget::downloadSelection(int zoomLevel,bool split, int maxWidth, int ma
     }
 
     QPoint dxy = geoEngine->convertPixToMapXY(QPoint(maxWidth,maxHeight),zoomLevel);
-    int dx =  dxy.x(); //Largeur d'une partie de carte en coordonnées carte
-    int dy =  dxy.y(); //Hauteur d'une partie de carte en coordonnées carte
+    int dx =  dxy.x(); //Largeur d'une partie de carte en coordonnÃ©es carte
+    int dy =  dxy.y(); //Hauteur d'une partie de carte en coordonnÃ©es carte
 
     toSavePositions.clear();
     if(QMessageBox::question(this,tr("Telechargement"),
@@ -271,7 +289,7 @@ void MapWidget::downloadSelection(int zoomLevel,bool split, int maxWidth, int ma
         downTilesOnly = tilesOnly;
         if(!tilesOnly)
         {
-            // Prépare les cartes splitées
+            // PrÃ©pare les cartes splitÃ©es
             for(int i=0;i<nx/maxWidth;i++)
                 for(int j=0;j<ny/maxHeight;j++)
                 {
@@ -394,4 +412,20 @@ void MapWidget::updateMap()
     tilesRect = newTilesRect;
     if(selectionOverlay)
         selectionOverlay->raise();
+}
+
+void MapWidget::setSelectionType(SelectionType s)
+{
+    selection = s;
+    selectionOverlay->setSelectionType(s);
+}
+
+void MapWidget::receiveGeocode(QPointF geoCode)
+{
+    goToLongLat(geoCode.x(),geoCode.y());
+}
+
+void MapWidget::goToAddress(QString address)
+{
+    geoEngine->getCoord(address);
 }

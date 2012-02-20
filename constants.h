@@ -38,8 +38,16 @@ typedef enum {
     PHOTOS,
     CADASTRE,
     CASSINI,
-    TEST,
+    TEST
     } Couche;
+
+typedef enum {
+    SEL_TELECHARGEMENT,
+    SEL_LIGNE,
+    SEL_CHEMIN
+} SelectionType;
+
+const int zoomLevelMin[4] = {4,2,4,4};
 
 typedef struct {
     int x;

@@ -28,17 +28,19 @@ public:
     QPoint convertXYToNumTile(QPoint xy, int zoomLevel);
     QPoint convertNumTileToXY(QPoint xy, int zoomLevel);
     QPoint convertPixToMapXY(QPoint pix,int zoomLevel);
-    int downloadImage(Couche couche, int x, int y, int zoomLevel);      // telecharge une image et renvoie l'identification du tÈlÈchargement
+    int downloadImage(Couche couche, int x, int y, int zoomLevel);      // telecharge une image et renvoie l'identification du t√©l√©chargement
     bool isInitialized(){return initialized;}
     void saveCachedTiles(QProgressBar* progressbar);
     TuileParams extractParamsFromFilename(QString filename);
+    void getCoord(QString address); //trouve les coordonn√©es correspondant √† une adresse
 
 public slots:
     void setAutoSave(bool a) {autoSave = a;}
     void setMode(GeoEngineMode m) {mode =m;}
 
 signals :
-        void dataReady(QByteArray data, int id);        // les donnÈes pour l'id sont pretes
+        void dataReady(QByteArray data, int id);        // les donn√©es pour l'id sont pretes
+        void geocodeReceived(QPointF coords);
         void ready();
 
 private slots:
@@ -56,7 +58,6 @@ private:
     QNetworkDiskCache* cache;
     bool connected;
     int sendFile(QString file);
-    QNetworkReply* initReply;
     QUrl _originalUrl;
     QUrl _urlRedirectedTo;
 
@@ -75,6 +76,8 @@ private:
 
     int compteur;
 
+    QNetworkReply* initReply;
+    QNetworkReply* geocodeReply;
     QList<QNetworkReply*> imageRequests;
     QString tilesDir;
     GeoEngineMode mode;

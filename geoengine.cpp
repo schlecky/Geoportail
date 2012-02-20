@@ -3,6 +3,7 @@
 #include <QDebug>
 #include <QDirIterator>
 #include <QTimer>
+#include <QDomDocument>
 
 GeoEngine::GeoEngine(GeoEngineMode m)
 {
@@ -181,7 +182,7 @@ void GeoEngine::init()
                     this, SLOT(requestFinished(QNetworkReply*)));
             initialized = false;
             initReply = manager->get(QNetworkRequest(QUrl("http://www.geoportail.fr")));
-            qDebug()<<"Mode connect�";
+            qDebug()<<"Mode connecté";
             break;
          case OFFLINE:
             qDebug()<<"Mode off-line";
@@ -237,7 +238,7 @@ QUrl GeoEngine::genereUrl(Couche couche, int x, int y, int zoomLevel)
     url.append(tabencryptsignes[nb]);
     QString xEncrypt = encryptNbBase(x,62);
     QString yEncrypt = encryptNbBase(y,62);
-    // ajout la taille de la coordonn�e x
+    // ajout la taille de la coordonnée x
     url.append(tabencryptnbr62x[xEncrypt.size()]);
     url.append(xEncrypt);
     url.append(yEncrypt);
@@ -305,44 +306,50 @@ void GeoEngine::requestFinished(QNetworkReply* reply)
                 saveTileToDisk(reply->url(),tileData);
             emit(dataReady(tileData,int(reply)));
         }
+        if(reply == geocodeReply)
+        {
+            QByteArray temp = reply->readAll();
+            QDomDocument kmlDoc;
+            kmlDoc.setContent(temp);
+            QDomElement n = kmlDoc.documentElement().firstChildElement(QString("Response")).
+                    firstChildElement(QString("Placemark")).
+                    firstChildElement(QString("Point")).firstChildElement(QString("coordinates"));
+            QString coordStr = n.firstChild().nodeValue();
+            QStringList coordsStr = coordStr.split(',');
+            QPointF coords = QPointF(coordsStr.at(0).toFloat(),coordsStr.at(1).toFloat());
+            emit(geocodeReceived(coords));
+        }
     }
     /* Clean up. */
     reply->deleteLater();
 
 }
 
-
+//todo : rajouter une option pour forcer le téléchargement
 int GeoEngine::downloadImage(Couche couche, int x, int y, int zoomLevel)
 {
-    int result=-1;
-    switch(mode)
+    QFileInfo info(genereUrl(couche, x, y, zoomLevel).toString());
+    info = QFileInfo(locateFile(tilesDir,info.fileName()));
+    if(!info.exists())
     {
-        case CONNECTED :
+        if(mode==OFFLINE)
+            info = QFileInfo(QString("noImg.jpg"));
+        else if (mode==CONNECTED)
         {
             QNetworkRequest request(genereUrl(couche, x, y, zoomLevel));
             request.setAttribute(QNetworkRequest::CacheLoadControlAttribute,
                                  QNetworkRequest::PreferCache);
             imageRequests.append(manager->get(request));
-            result = int(imageRequests.back());
-            break;
+            return int(imageRequests.back());
         }
-        case OFFLINE :
-            QFileInfo info(genereUrl(couche, x, y, zoomLevel).toString());
-            info = QFileInfo(locateFile(tilesDir,info.fileName()));
-            if(!info.exists())
-            {
-                info = QFileInfo(QString("noImg.jpg"));
-            }
-            QFile fich(info.filePath());
-            fich.open(QIODevice::ReadOnly);
-            toSendId.enqueue(compteur++);
-            toSend.enqueue(fich.readAll());
-            fich.close();
-            QTimer::singleShot(10,this,SLOT(sendFirstData()));
-            result = toSendId.back();
-            break;
     }
-    return result;
+    QFile fich(info.filePath());
+    fich.open(QIODevice::ReadOnly);
+    toSendId.enqueue(compteur++);
+    toSend.enqueue(fich.readAll());
+    fich.close();
+    QTimer::singleShot(10,this,SLOT(sendFirstData()));
+    return toSendId.back();
 }
 
 void GeoEngine::sendFirstData()
@@ -368,3 +375,10 @@ TuileParams GeoEngine::extractParamsFromFilename(QString filename)
     params.y = decryptNbBase(filename,62);
     return params;
 }
+
+void GeoEngine::getCoord(QString address)
+{
+    QNetworkRequest request(QString("http://maps.google.com/maps/geo?output=kml&q=%1").arg(address));
+    geocodeReply = manager->get(request);
+}
+
