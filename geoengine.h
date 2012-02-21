@@ -28,6 +28,7 @@ public:
     QPoint convertXYToNumTile(QPoint xy, int zoomLevel);
     QPoint convertNumTileToXY(QPoint xy, int zoomLevel);
     QPoint convertPixToMapXY(QPoint pix,int zoomLevel);
+    QPoint convertMapXYToPix(QPoint xy,int zoomLevel);
     int downloadImage(Couche couche, int x, int y, int zoomLevel);      // telecharge une image et renvoie l'identification du téléchargement
     bool isInitialized(){return initialized;}
     void saveCachedTiles(QProgressBar* progressbar);

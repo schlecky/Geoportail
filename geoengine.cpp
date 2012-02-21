@@ -316,8 +316,11 @@ void GeoEngine::requestFinished(QNetworkReply* reply)
                     firstChildElement(QString("Point")).firstChildElement(QString("coordinates"));
             QString coordStr = n.firstChild().nodeValue();
             QStringList coordsStr = coordStr.split(',');
-            QPointF coords = QPointF(coordsStr.at(0).toFloat(),coordsStr.at(1).toFloat());
-            emit(geocodeReceived(coords));
+            if(coordsStr.size()>1)
+            {
+                QPointF coords = QPointF(coordsStr.at(0).toFloat(),coordsStr.at(1).toFloat());
+                emit(geocodeReceived(coords));
+            }
         }
     }
     /* Clean up. */
@@ -380,5 +383,10 @@ void GeoEngine::getCoord(QString address)
 {
     QNetworkRequest request(QString("http://maps.google.com/maps/geo?output=kml&q=%1").arg(address));
     geocodeReply = manager->get(request);
+}
+
+QPoint GeoEngine::convertMapXYToPix(QPoint xy, int zoomLevel)
+{
+    return xy*xRatios[zoomLevel-1];
 }
 

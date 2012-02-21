@@ -39,6 +39,13 @@ MapWidget::MapWidget(QWidget *parent) :
 void MapWidget::goToLongLat(double longitude, double latitude)
 {
     center = geoEngine->convertLongLatToXY(longitude,latitude);
+    tilesRect = QRect();
+    for(int i=0; i<tiles.size();i++)
+    {
+       Tile* tile=tiles.takeAt(i);
+       downIds.remove(downIds.key(tile)); //on ne doit plus telecharger la tuile si c'est en cours
+       delete tile;
+    }
     emit(coordChange(longitude,latitude));
     updateMap();
 }
