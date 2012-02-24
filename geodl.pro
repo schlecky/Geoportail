@@ -1,7 +1,6 @@
 TEMPLATE = app
-CONFIG += uitools
+CONFIG += uitools static
 QT = gui core network
-CONFIG += console debug
 LICENSE = GPL
 SOURCES = geodl.cpp \
     tile.cpp \
@@ -14,4 +13,5 @@ HEADERS = geodl.h \
     geoengine.h \
     constants.h \
     overlay.h
-FORMS   = mainWindow.ui
+FORMS = mainWindow.ui
+LIBS += -static

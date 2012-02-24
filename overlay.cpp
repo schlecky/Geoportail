@@ -1,6 +1,7 @@
 #include "overlay.h"
 #include <math.h>
 #include <QPainter>
+#include <QDebug>
 
 Overlay::Overlay(QWidget *parent) :
     QWidget(parent)
@@ -13,14 +14,14 @@ Overlay::Overlay(QWidget *parent) :
 
 int Overlay::scaleDist()
 {
-    int dist = int(110*scaleRatio);
-    dist = int(dist/pow(10,int(log(dist)/log(10))))*pow(10,int(log(dist)/log(10)));
+    int dist = floor(110*scaleRatio);
+    dist = floor(dist/pow(10,floor(log(dist)/log(10)))+0.01)*floor(pow(10,floor(log(dist)/log(10))));
     return dist;
 }
 
 int Overlay::scaleLength()
 {
-    return int(scaleDist()/scaleRatio);
+    return floor(scaleDist()/scaleRatio);
 }
 
 double Overlay::dist()
