@@ -17,7 +17,7 @@ MapWidget::MapWidget(QWidget *parent) :
     geoEngine = new GeoEngine(CONNECTED);
     connect(geoEngine,SIGNAL(dataReady(QByteArray,int)),
             this,SLOT(receiveData(QByteArray,int)));
-    connect(geoEngine,SIGNAL(ready()),this,SLOT(updateMap()));
+    connect(geoEngine,SIGNAL(ready()),this,SLOT(engineReady()));
     connect(geoEngine,SIGNAL(geocodeReceived(QPointF)),this,SLOT(receiveGeocode(QPointF)));
     geoEngine->init();
     zoomLevel = 10;
@@ -31,10 +31,17 @@ MapWidget::MapWidget(QWidget *parent) :
     progressBar.resize(width(),30);
     selection =  SEL_LIGNE;
     selectionOverlay->setSelectionType(SEL_LIGNE);
+}
 
+
+void MapWidget::engineReady()
+{
     //Metz
     goToLongLat(6.17862,49.1133);
 }
+
+
+
 
 void MapWidget::goToLongLat(double longitude, double latitude)
 {
@@ -47,7 +54,8 @@ void MapWidget::goToLongLat(double longitude, double latitude)
        delete tile;
     }
     emit(coordChange(longitude,latitude));
-    updateMap();
+    if(geoEngine->isInitialized())
+        updateMap();
 }
 
 QPoint MapWidget::convertScreenToMapXY(QPoint pos)
@@ -212,9 +220,9 @@ void MapWidget::mouseReleaseEvent ( QMouseEvent * event )
         QPoint temp = -event->pos()+startingPos;
         temp.setY(-temp.y());
         center+=temp/xRatios[zoomLevel-1];
-        updateMap();
         emit(coordChange(geoEngine->convertToLongitude(center.x()),
                          geoEngine->convertToLatitude(center.y())));
+        QTimer::singleShot(1,this,SLOT(updateMap()));
     }
 
     if(event->button()==Qt::LeftButton)
@@ -392,6 +400,7 @@ void MapWidget::saveCalibrationToFile(QString filename,QRect mapXYRect, QSize ma
 
 void MapWidget::updateMap()
 {
+    qDebug()<<"Update map";
     QRect newTilesRect = QRect(convertScreenToMapNum(rect().bottomLeft()),convertScreenToMapNum(rect().topRight()));
     for(int i=newTilesRect.left();i<=newTilesRect.right();i++)
         for(int j=newTilesRect.top();j<=newTilesRect.bottom();j++)
@@ -407,7 +416,7 @@ void MapWidget::updateMap()
                 tiles.append(tempTile);
             }
         }
-    for(int i=0; i<tiles.size();i++)
+    for(int i=0; i<tiles.size();)
     {
         if(!newTilesRect.contains(tiles[i]->getNum()))
         {
@@ -415,6 +424,8 @@ void MapWidget::updateMap()
            downIds.remove(downIds.key(tile)); //on ne doit plus telecharger la tuile si c'est en cours
            delete tile;
         }
+        else
+            i++;
     }
     tilesRect = newTilesRect;
     if(selectionOverlay)

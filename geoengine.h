@@ -33,7 +33,7 @@ public:
     bool isInitialized(){return initialized;}
     void saveCachedTiles(QProgressBar* progressbar);
     TuileParams extractParamsFromFilename(QString filename);
-    void getCoord(QString address); //trouve les coordonnées correspondant à une adresse
+    void getCoord(QString address); //trouve les coordonnées correspondant �  une adresse
 
 public slots:
     void setAutoSave(bool a) {autoSave = a;}

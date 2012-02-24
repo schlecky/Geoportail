@@ -43,6 +43,8 @@ GeoEngine::GeoEngine(GeoEngineMode m)
     my_tabencryptsignes.resize(4);
     for(int i=0;i<4;i++)
         my_tabencryptsignes[i] = tabencryptsignes[i];
+
+    initialized = false;
 }
 
 void GeoEngine::saveCachedTiles(QProgressBar* progressbar)
@@ -296,14 +298,16 @@ void GeoEngine::requestFinished(QNetworkReply* reply)
         _urlRedirectedTo.clear();
         if(reply == initReply)
         {
-            emit(ready());
             initialized = true;
+            emit(ready());
         }
         if(imageRequests.contains(reply))
         {
             QByteArray tileData = reply->readAll();
             if(autoSave)
+            {
                 saveTileToDisk(reply->url(),tileData);
+            }
             emit(dataReady(tileData,int(reply)));
         }
         if(reply == geocodeReply)

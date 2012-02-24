@@ -14,6 +14,7 @@
 #include "constants.h"
 #include "overlay.h"
 #include <QProgressBar>
+#include <QTimer>
 
 class MapWidget : public QWidget
 {
@@ -46,7 +47,7 @@ public slots:
     void setAutoSave(bool a){if(geoEngine){geoEngine->setAutoSave(a);}}
     void setGeoEngineMode(GeoEngineMode mode) {if(geoEngine){geoEngine->setMode(mode);}}
     void receiveGeocode(QPointF geoCode);
-
+    void engineReady();
 
 private:
     //QList<Tile*> tiles;
