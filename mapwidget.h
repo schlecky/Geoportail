@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QList>
 #include <QPoint>
+#include <QPointF>
 #include <QRect>
 #include <QString>
 #include <QMouseEvent>
@@ -15,6 +16,8 @@
 #include "overlay.h"
 #include <QProgressBar>
 
+class Overlay;
+
 class MapWidget : public QWidget
 {
     Q_OBJECT
@@ -25,6 +28,11 @@ public:
     double getLongitude() {return geoEngine->convertToLongitude(center.x());}
     double getLatitude() {return geoEngine->convertToLatitude(center.y());}
     int getZoomLevelMin() {return zoomLevelMin[couche];}
+    QPoint convertScreenToMapNum(QPoint pos);
+    QPoint convertScreenToMapXY(QPoint pos);
+    QRect convertScreenToMapXY(QRect rect);
+    QPoint convertMapToScreenXY(QPoint pos);
+    QPoint convertLongLatToScreenXY(QPointF pos);
 
 signals:
     void coordChange(double longitude, double latitude);
@@ -42,6 +50,8 @@ public slots:
 
     //télécharge la zone selectionnee au niveau de zoom 'zoomLevel'
     void downloadSelection(int zoomLevel, bool split=false, int maxWidth=768, int maxHeight=768, bool tilesonly=false);
+    // télécharge la zone séléctionnée et crée un Atlas.
+    void exportAtlas(int zoomLevel);
     void saveCache() {geoEngine->saveCachedTiles(&progressBar);}
     void setAutoSave(bool a){if(geoEngine){geoEngine->setAutoSave(a);}}
     void setGeoEngineMode(GeoEngineMode mode) {if(geoEngine){geoEngine->setMode(mode);}}
@@ -56,11 +66,6 @@ private:
     int zoomLevel;
     Couche couche;
     QRect tilesRect;    // le rectangles des tuiles en numeros
-
-    QPoint convertScreenToMapNum(QPoint pos);
-    QPoint convertScreenToMapXY(QPoint pos);
-    QRect convertScreenToMapXY(QRect rect);
-    QPoint convertMapToScreenXY(QPoint pos);
 
     void saveCalibrationToFile(QString filename,QRect mapXYRect, QSize mapSize);
 

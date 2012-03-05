@@ -49,4 +49,5 @@ private slots:
         void on_btnChemin_toggled(bool checked);
         void on_toolBox_currentChanged(int index);
         void on_btnGotoAddress_clicked();
+        void on_btnAtlas_clicked();
 };

@@ -1,14 +1,19 @@
 #include "overlay.h"
 #include <math.h>
 #include <QPainter>
+#include <QFile>
+#include <QTextStream>
+#include <QDebug>
 
-Overlay::Overlay(QWidget *parent) :
+Overlay::Overlay(MapWidget *parent) :
     QWidget(parent)
 {
     setPalette(Qt::transparent);
     setAttribute(Qt::WA_TransparentForMouseEvents);
     scaleOn = true;
     scaleRatio = 0.5;
+    map=parent;
+    loadTraceFromGPX(QString("test.txt"));
 }
 
 int Overlay::scaleDist()
@@ -106,5 +111,35 @@ void Overlay::paintEvent(QPaintEvent *)
                                length,15), QString("%1 m").arg(dist),
                          QTextOption(Qt::AlignHCenter));
     }
+
+    // draw traces
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setPen(QPen(QBrush(Qt::blue),3));
+    for(int i=0;i<traces.size();i++)
+    {
+        QPolygon trace;
+        for(int j=0;j<traces[i].size();j++)
+        {
+            trace.append(map->convertLongLatToScreenXY(traces[i][j]));
+        }
+        painter.drawPolyline(trace);
+    }
     painter.end();
+}
+
+void Overlay::loadTraceFromGPX(QString filename)
+{
+    QFile fichier("test.txt");
+    if (!fichier.open(QIODevice::ReadOnly | QIODevice::Text))
+             return;
+    QTextStream in(&fichier);
+    Trace trace;
+    while(!in.atEnd())
+    {
+        double x,y;
+        in >> x >> y;
+        trace.append(QPointF(x,y));
+        in.readLine();
+    }
+    traces.append(trace);
 }

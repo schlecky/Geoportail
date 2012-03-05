@@ -75,6 +75,11 @@ QPoint MapWidget::convertMapToScreenXY(QPoint pos)
     return rect().bottomRight()/2+temp;
 }
 
+QPoint MapWidget::convertLongLatToScreenXY(QPointF longLat)
+{
+    return convertMapToScreenXY(geoEngine->convertLongLatToXY(longLat.x(),longLat.y()));
+}
+
 void MapWidget::receiveData(QByteArray array, int id)
 {
     if(downIds.contains(id))
@@ -191,7 +196,12 @@ void MapWidget::mouseMoveEvent ( QMouseEvent * event )
         {
             tiles[i]->move(tiles[i]->pos()+event->pos()-originalPos);
         }
+        QPoint temp = -event->pos()+originalPos;
+        temp.setY(-temp.y());
+        center+=temp/xRatios[zoomLevel-1];
         originalPos = event->pos();
+
+        selectionOverlay->update();
     }
 
     if(selecting)
@@ -209,10 +219,10 @@ void MapWidget::mouseReleaseEvent ( QMouseEvent * event )
     if(event->button()==Qt::RightButton)
     {
         moving = false;
-        QPoint temp = -event->pos()+startingPos;
+        /*QPoint temp = -event->pos()+startingPos;
         temp.setY(-temp.y());
         center+=temp/xRatios[zoomLevel-1];
-        updateMap();
+        */updateMap();
         emit(coordChange(geoEngine->convertToLongitude(center.x()),
                          geoEngine->convertToLatitude(center.y())));
     }
@@ -220,6 +230,8 @@ void MapWidget::mouseReleaseEvent ( QMouseEvent * event )
     if(event->button()==Qt::LeftButton)
     {
         selecting = false;
+        if(selectionOverlay->getSelection().size()<2)
+            emit(setDLEnabled(false));
         repaint();
     }
 }
@@ -407,7 +419,7 @@ void MapWidget::updateMap()
                 tiles.append(tempTile);
             }
         }
-    for(int i=0; i<tiles.size();i++)
+    for(int i=0; i<tiles.size();)
     {
         if(!newTilesRect.contains(tiles[i]->getNum()))
         {
@@ -415,6 +427,8 @@ void MapWidget::updateMap()
            downIds.remove(downIds.key(tile)); //on ne doit plus telecharger la tuile si c'est en cours
            delete tile;
         }
+        else
+            i++;
     }
     tilesRect = newTilesRect;
     if(selectionOverlay)
@@ -435,4 +449,9 @@ void MapWidget::receiveGeocode(QPointF geoCode)
 void MapWidget::goToAddress(QString address)
 {
     geoEngine->getCoord(address);
+}
+
+void MapWidget::exportAtlas(int zoomLevel)
+{
+
 }
