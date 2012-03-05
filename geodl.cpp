@@ -26,6 +26,8 @@ GeoDL::GeoDL()
     connect(ui.mapWidget,SIGNAL(zoomChanged(int)),ui.sliderDisp,SLOT(setValue(int)));
     connect(ui.chkAutoSave,SIGNAL(toggled(bool)),ui.mapWidget,SLOT(setAutoSave(bool)));
     connect(ui.mapWidget,SIGNAL(afficheDist(double)),this,SLOT(afficheDist(double)));
+    connect(ui.btnLoadGPX,SIGNAL(clicked()),ui.mapWidget,SLOT(loadGPX()));
+    connect(ui.btnDelTraces,SIGNAL(clicked()),ui.mapWidget,SLOT(removeTraces()));
     ui.chkAutoSave->setChecked(true);
     //connect(mapWidget,SIGNAL(coordChange(double,double)),this,SLOT())
    // mapWidget = new MapWidget;

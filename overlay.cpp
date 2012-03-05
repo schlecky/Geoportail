@@ -4,6 +4,7 @@
 #include <QFile>
 #include <QTextStream>
 #include <QDebug>
+#include <QDomDocument>
 
 Overlay::Overlay(MapWidget *parent) :
     QWidget(parent)
@@ -13,7 +14,7 @@ Overlay::Overlay(MapWidget *parent) :
     scaleOn = true;
     scaleRatio = 0.5;
     map=parent;
-    loadTraceFromGPX(QString("test.txt"));
+    loadTraceFromGPX(QString("test.gpx"));
 }
 
 int Overlay::scaleDist()
@@ -120,6 +121,7 @@ void Overlay::paintEvent(QPaintEvent *)
         QPolygon trace;
         for(int j=0;j<traces[i].size();j++)
         {
+            //qDebug()<<traces[i][j].x()<<" "<<traces[i][j].y();
             trace.append(map->convertLongLatToScreenXY(traces[i][j]));
         }
         painter.drawPolyline(trace);
@@ -129,17 +131,43 @@ void Overlay::paintEvent(QPaintEvent *)
 
 void Overlay::loadTraceFromGPX(QString filename)
 {
-    QFile fichier("test.txt");
-    if (!fichier.open(QIODevice::ReadOnly | QIODevice::Text))
-             return;
-    QTextStream in(&fichier);
-    Trace trace;
-    while(!in.atEnd())
-    {
-        double x,y;
-        in >> x >> y;
-        trace.append(QPointF(x,y));
-        in.readLine();
+    QDomDocument gpx;
+    QFile fichier(filename);
+    if(!fichier.open(QIODevice::ReadOnly)) {
+        qDebug() << tr("Failed to open: ") + filename;
+        return;}
+    if(!gpx.setContent(&fichier)) {
+        fichier.close();
+        qDebug() << tr("Failed to read: ") + filename;
+        return;}
+    fichier.close();
+
+    const  QDomElement& docElem = gpx.documentElement();
+    if(docElem.tagName() != "gpx") {
+        qDebug() << tr("Not a GPX file: ") + filename;
+        return;
     }
-    traces.append(trace);
+
+    const QDomNodeList& trks = gpx.elementsByTagName("trk");
+        uint N = trks.count();
+        for(uint n = 0; n < N; ++n) {
+            const QDomNode& trk = trks.item(n);
+            const QDomNode& trkseg = trk.namedItem("trkseg");
+            QDomElement trkpt = trkseg.firstChildElement("trkpt");
+            Trace trace;
+            while (!trkpt.isNull()) {
+                QDomNamedNodeMap attr = trkpt.attributes();
+               // qDebug()<<attr.namedItem("lon").nodeValue().toDouble()<<" "<<
+               //           attr.namedItem("lat").nodeValue().toDouble();
+                trace.append(QPointF(attr.namedItem("lon").nodeValue().toDouble(),
+                                     attr.namedItem("lat").nodeValue().toDouble()));
+                trkpt = trkpt.nextSiblingElement("trkpt");
+            }
+            traces.append(trace);
+        }
+}
+
+void Overlay::removeTraces()
+{
+    traces.clear();
 }

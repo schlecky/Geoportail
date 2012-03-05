@@ -455,3 +455,17 @@ void MapWidget::exportAtlas(int zoomLevel)
 {
 
 }
+
+void MapWidget::loadGPX()
+{
+    QString filename = QFileDialog::getOpenFileName(this,QString("Choisir un fichier"),
+                                        QString("."),QString("*.gpx"));
+    if(!filename.isEmpty())
+        selectionOverlay->loadTraceFromGPX(filename);
+}
+
+void MapWidget::removeTraces()
+{
+    selectionOverlay->removeTraces();
+    selectionOverlay->update();
+}

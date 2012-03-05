@@ -57,6 +57,11 @@ public slots:
     void setGeoEngineMode(GeoEngineMode mode) {if(geoEngine){geoEngine->setMode(mode);}}
     void receiveGeocode(QPointF geoCode);
 
+    //charge une trace gpx
+    void loadGPX();
+    //supprime toutes les traces
+    void removeTraces();
+
 
 private:
     //QList<Tile*> tiles;

@@ -42,7 +42,7 @@
        <enum>QFrame::Panel</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="pgMesures">
        <property name="geometry">
@@ -124,7 +124,7 @@
          <x>0</x>
          <y>0</y>
          <width>148</width>
-         <height>326</height>
+         <height>330</height>
         </rect>
        </property>
        <attribute name="label">
@@ -264,6 +264,20 @@
          </widget>
         </item>
         <item>
+         <widget class="QPushButton" name="btnLoadGPX">
+          <property name="text">
+           <string>Charger gpx</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btnDelTraces">
+          <property name="text">
+           <string>Effacer traces</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <spacer name="verticalSpacer_2">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
@@ -284,7 +298,7 @@
          <x>0</x>
          <y>0</y>
          <width>148</width>
-         <height>326</height>
+         <height>330</height>
         </rect>
        </property>
        <attribute name="label">
@@ -416,7 +430,7 @@
          <x>0</x>
          <y>0</y>
          <width>148</width>
-         <height>326</height>
+         <height>330</height>
         </rect>
        </property>
        <attribute name="label">
@@ -628,7 +642,7 @@
          <x>0</x>
          <y>0</y>
          <width>148</width>
-         <height>326</height>
+         <height>330</height>
         </rect>
        </property>
        <attribute name="label">

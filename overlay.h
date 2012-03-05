@@ -32,6 +32,7 @@ public slots:
     void hideScale(){scaleOn = false;}
     void setScaleRatio(double ratio){scaleRatio = ratio;}
     void loadTraceFromGPX(QString filename);
+    void removeTraces();
 protected :
     virtual void paintEvent(QPaintEvent *);
 
