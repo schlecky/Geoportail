@@ -22,9 +22,12 @@ GeoDL::GeoDL()
 {
     ui.setupUi(this);
     connect(ui.mapWidget,SIGNAL(setDLEnabled(bool)),ui.btnDownload,SLOT(setEnabled(bool)));
+    connect(ui.mapWidget,SIGNAL(setDLEnabled(bool)),ui.btnAtlas,SLOT(setEnabled(bool)));
     connect(ui.mapWidget,SIGNAL(zoomChanged(int)),ui.sliderDisp,SLOT(setValue(int)));
     connect(ui.chkAutoSave,SIGNAL(toggled(bool)),ui.mapWidget,SLOT(setAutoSave(bool)));
     connect(ui.mapWidget,SIGNAL(afficheDist(double)),this,SLOT(afficheDist(double)));
+    connect(ui.btnLoadGPX,SIGNAL(clicked()),ui.mapWidget,SLOT(loadGPX()));
+    connect(ui.btnDelTraces,SIGNAL(clicked()),ui.mapWidget,SLOT(removeTraces()));
     ui.chkAutoSave->setChecked(true);
     //connect(mapWidget,SIGNAL(coordChange(double,double)),this,SLOT())
    // mapWidget = new MapWidget;
@@ -155,6 +158,8 @@ void GeoDL::on_toolBox_currentChanged(int index)
             ui.mapWidget->setSelectionType(SEL_LIGNE);
         if(ui.btnChemin->isChecked())
             ui.mapWidget->setSelectionType(SEL_CHEMIN);
+        ui.btnAtlas->setEnabled(false);
+        ui.btnDownload->setEnabled(false);
         break;
 
     case 3:
@@ -171,4 +176,10 @@ void GeoDL::afficheDist(double dist)
 void GeoDL::on_btnGotoAddress_clicked()
 {
     ui.mapWidget->goToAddress(ui.edtAddress->text());
+}
+
+
+void GeoDL::on_btnAtlas_clicked()
+{
+    ui.mapWidget->exportAtlas(ui.sliderDown->value());
 }

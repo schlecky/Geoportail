@@ -1,16 +1,21 @@
 #ifndef OVERLAY_H
 #define OVERLAY_H
 
+#include "mapwidget.h"
 #include <QWidget>
 #include <QRect>
 #include <QPolygon>
 #include <constants.h>
 
+class MapWidget;
+
+typedef QVector<QPointF> Trace ;
+
 class Overlay : public QWidget
 {
     Q_OBJECT
 public:
-    explicit Overlay(QWidget *parent = 0);
+    explicit Overlay(MapWidget *parent = 0);
     double dist();
 
 signals:
@@ -26,16 +31,19 @@ public slots:
     void showScale(){scaleOn = true;}
     void hideScale(){scaleOn = false;}
     void setScaleRatio(double ratio){scaleRatio = ratio;}
+    void loadTraceFromGPX(QString filename);
+    void removeTraces();
 protected :
     virtual void paintEvent(QPaintEvent *);
 
 private :
     QPolygon selection;
     SelectionType selType;
+    QVector<Trace> traces;
     bool selectionOn;
     bool scaleOn;
     double scaleRatio; //en m/pixel
-
+    MapWidget* map;
     int scaleLength(); // calcule la longueur de l'échelle en pixels
     int scaleDist();   // la distance représentée par l'échelle en m
 };

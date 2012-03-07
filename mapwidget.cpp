@@ -17,7 +17,7 @@ MapWidget::MapWidget(QWidget *parent) :
     geoEngine = new GeoEngine(CONNECTED);
     connect(geoEngine,SIGNAL(dataReady(QByteArray,int)),
             this,SLOT(receiveData(QByteArray,int)));
-    connect(geoEngine,SIGNAL(ready()),this,SLOT(engineReady()));
+    connect(geoEngine,SIGNAL(ready()),this,SLOT(updateMap()));
     connect(geoEngine,SIGNAL(geocodeReceived(QPointF)),this,SLOT(receiveGeocode(QPointF)));
     geoEngine->init();
     zoomLevel = 10;
@@ -31,17 +31,10 @@ MapWidget::MapWidget(QWidget *parent) :
     progressBar.resize(width(),30);
     selection =  SEL_LIGNE;
     selectionOverlay->setSelectionType(SEL_LIGNE);
-}
 
-
-void MapWidget::engineReady()
-{
     //Metz
     goToLongLat(6.17862,49.1133);
 }
-
-
-
 
 void MapWidget::goToLongLat(double longitude, double latitude)
 {
@@ -54,8 +47,7 @@ void MapWidget::goToLongLat(double longitude, double latitude)
        delete tile;
     }
     emit(coordChange(longitude,latitude));
-    if(geoEngine->isInitialized())
-        updateMap();
+    updateMap();
 }
 
 QPoint MapWidget::convertScreenToMapXY(QPoint pos)
@@ -81,6 +73,11 @@ QPoint MapWidget::convertMapToScreenXY(QPoint pos)
     QPoint temp = (pos-center)*xRatios[zoomLevel-1];
     temp.setY(-temp.y());
     return rect().bottomRight()/2+temp;
+}
+
+QPoint MapWidget::convertLongLatToScreenXY(QPointF longLat)
+{
+    return convertMapToScreenXY(geoEngine->convertLongLatToXY(longLat.x(),longLat.y()));
 }
 
 void MapWidget::receiveData(QByteArray array, int id)
@@ -199,7 +196,12 @@ void MapWidget::mouseMoveEvent ( QMouseEvent * event )
         {
             tiles[i]->move(tiles[i]->pos()+event->pos()-originalPos);
         }
+        QPoint temp = -event->pos()+originalPos;
+        temp.setY(-temp.y());
+        center+=temp/xRatios[zoomLevel-1];
         originalPos = event->pos();
+
+        selectionOverlay->update();
     }
 
     if(selecting)
@@ -217,17 +219,19 @@ void MapWidget::mouseReleaseEvent ( QMouseEvent * event )
     if(event->button()==Qt::RightButton)
     {
         moving = false;
-        QPoint temp = -event->pos()+startingPos;
+        /*QPoint temp = -event->pos()+startingPos;
         temp.setY(-temp.y());
         center+=temp/xRatios[zoomLevel-1];
+        */updateMap();
         emit(coordChange(geoEngine->convertToLongitude(center.x()),
                          geoEngine->convertToLatitude(center.y())));
-        QTimer::singleShot(1,this,SLOT(updateMap()));
     }
 
     if(event->button()==Qt::LeftButton)
     {
         selecting = false;
+        if(selectionOverlay->getSelection().size()<2)
+            emit(setDLEnabled(false));
         repaint();
     }
 }
@@ -400,7 +404,6 @@ void MapWidget::saveCalibrationToFile(QString filename,QRect mapXYRect, QSize ma
 
 void MapWidget::updateMap()
 {
-    qDebug()<<"Update map";
     QRect newTilesRect = QRect(convertScreenToMapNum(rect().bottomLeft()),convertScreenToMapNum(rect().topRight()));
     for(int i=newTilesRect.left();i<=newTilesRect.right();i++)
         for(int j=newTilesRect.top();j<=newTilesRect.bottom();j++)
@@ -446,4 +449,23 @@ void MapWidget::receiveGeocode(QPointF geoCode)
 void MapWidget::goToAddress(QString address)
 {
     geoEngine->getCoord(address);
+}
+
+void MapWidget::exportAtlas(int zoomLevel)
+{
+
+}
+
+void MapWidget::loadGPX()
+{
+    QString filename = QFileDialog::getOpenFileName(this,QString("Choisir un fichier"),
+                                        QString("."),QString("*.gpx"));
+    if(!filename.isEmpty())
+        selectionOverlay->loadTraceFromGPX(filename);
+}
+
+void MapWidget::removeTraces()
+{
+    selectionOverlay->removeTraces();
+    selectionOverlay->update();
 }
