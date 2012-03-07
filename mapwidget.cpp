@@ -9,6 +9,7 @@
 #include <QTextStream>
 #include <QFileInfo>
 #include <QHash>
+#include <QTimer>
 
 MapWidget::MapWidget(QWidget *parent) :
     QWidget(parent)
@@ -17,7 +18,7 @@ MapWidget::MapWidget(QWidget *parent) :
     geoEngine = new GeoEngine(CONNECTED);
     connect(geoEngine,SIGNAL(dataReady(QByteArray,int)),
             this,SLOT(receiveData(QByteArray,int)));
-    connect(geoEngine,SIGNAL(ready()),this,SLOT(updateMap()));
+    connect(geoEngine,SIGNAL(ready()),this,SLOT(engineReady()));
     connect(geoEngine,SIGNAL(geocodeReceived(QPointF)),this,SLOT(receiveGeocode(QPointF)));
     geoEngine->init();
     zoomLevel = 10;
@@ -31,7 +32,11 @@ MapWidget::MapWidget(QWidget *parent) :
     progressBar.resize(width(),30);
     selection =  SEL_LIGNE;
     selectionOverlay->setSelectionType(SEL_LIGNE);
+}
 
+
+void MapWidget::engineReady()
+{
     //Metz
     goToLongLat(6.17862,49.1133);
 }
@@ -47,7 +52,8 @@ void MapWidget::goToLongLat(double longitude, double latitude)
        delete tile;
     }
     emit(coordChange(longitude,latitude));
-    updateMap();
+    if(geoEngine->isInitialized())
+        updateMap();
 }
 
 QPoint MapWidget::convertScreenToMapXY(QPoint pos)
@@ -129,6 +135,8 @@ void MapWidget::receiveData(QByteArray array, int id)
         }
     }
 }
+
+
 
 void MapWidget::mousePressEvent ( QMouseEvent * event )
 {
@@ -219,12 +227,11 @@ void MapWidget::mouseReleaseEvent ( QMouseEvent * event )
     if(event->button()==Qt::RightButton)
     {
         moving = false;
-        /*QPoint temp = -event->pos()+startingPos;
-        temp.setY(-temp.y());
-        center+=temp/xRatios[zoomLevel-1];
-        */updateMap();
         emit(coordChange(geoEngine->convertToLongitude(center.x()),
                          geoEngine->convertToLatitude(center.y())));
+
+        //évite que la version windows plante ?
+        QTimer::singleShot(1,this,SLOT(updateMap()));
     }
 
     if(event->button()==Qt::LeftButton)

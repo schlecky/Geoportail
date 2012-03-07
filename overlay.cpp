@@ -19,8 +19,10 @@ Overlay::Overlay(MapWidget *parent) :
 
 int Overlay::scaleDist()
 {
-    int dist = int(110*scaleRatio);
-    dist = int(dist/pow(10,int(log(dist)/log(10))))*pow(10,int(log(dist)/log(10)));
+    int dist = floor(110*scaleRatio);
+    int puissance = floor(pow(10,floor(log(dist)/log(10))));
+    int nb = floor(dist/pow(10,floor(log(dist)/log(10))));
+    dist = nb*puissance;
     return dist;
 }
 

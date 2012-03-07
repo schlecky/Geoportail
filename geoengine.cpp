@@ -85,8 +85,10 @@ void GeoEngine::saveCachedTiles(QProgressBar* progressbar)
 
 void GeoEngine::saveTileToDisk(QUrl url, QByteArray dat)
 {
+    //ne sauve pas une image vide
+    if(dat.size()==0)
+        return;
     QFileInfo info(url.toString());
-
     //qDebug()<<directory+QString("/")+info.fileName();
     QString relative = convertTileToDir(extractParamsFromFilename(info.fileName()));
     if(relative == QString("E"))
@@ -107,7 +109,19 @@ void GeoEngine::saveTileToDisk(QUrl url, QByteArray dat)
 
 QString GeoEngine::locateFile(QString baseDir, QString filename)
 {
-    return baseDir+QString("/")+convertTileToDir(extractParamsFromFilename(filename))+filename;
+    QString dir = baseDir+QString("/")+convertTileToDir(extractParamsFromFilename(filename));
+#ifdef _WIN32
+    for(int i=0;i<filename.length();i++)
+    {
+        if(filename[i].isUpper())
+        {
+            filename.insert(i,QChar('h'));
+            i++;
+        }
+    }
+    filename = filename.toLower();
+#endif
+    return dir + filename;
 }
 
 QString GeoEngine::convertTileToDir(TuileParams params)

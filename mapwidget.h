@@ -43,6 +43,7 @@ signals:
 public slots:
     void receiveData(QByteArray,int);
    // void startDownload();
+    void engineReady();
     void updateMap();
     void goToLongLat(double longit, double latit);
     void goToAddress(QString address);
