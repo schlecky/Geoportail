@@ -14,7 +14,6 @@ Overlay::Overlay(MapWidget *parent) :
     scaleOn = true;
     scaleRatio = 0.5;
     map=parent;
-    loadTraceFromGPX(QString("test.gpx"));
 }
 
 int Overlay::scaleDist()
@@ -159,8 +158,6 @@ void Overlay::loadTraceFromGPX(QString filename)
             Trace trace;
             while (!trkpt.isNull()) {
                 QDomNamedNodeMap attr = trkpt.attributes();
-               // qDebug()<<attr.namedItem("lon").nodeValue().toDouble()<<" "<<
-               //           attr.namedItem("lat").nodeValue().toDouble();
                 trace.append(QPointF(attr.namedItem("lon").nodeValue().toDouble(),
                                      attr.namedItem("lat").nodeValue().toDouble()));
                 trkpt = trkpt.nextSiblingElement("trkpt");
