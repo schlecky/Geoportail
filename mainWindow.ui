@@ -50,7 +50,7 @@
          <x>0</x>
          <y>0</y>
          <width>148</width>
-         <height>330</height>
+         <height>361</height>
         </rect>
        </property>
        <attribute name="label">
@@ -124,7 +124,7 @@
          <x>0</x>
          <y>0</y>
          <width>148</width>
-         <height>330</height>
+         <height>361</height>
         </rect>
        </property>
        <attribute name="label">
@@ -271,6 +271,9 @@
          </widget>
         </item>
         <item>
+         <widget class="QListWidget" name="gpxList"/>
+        </item>
+        <item>
          <widget class="QPushButton" name="btnDelTraces">
           <property name="text">
            <string>Effacer traces</string>
@@ -298,7 +301,7 @@
          <x>0</x>
          <y>0</y>
          <width>148</width>
-         <height>330</height>
+         <height>361</height>
         </rect>
        </property>
        <attribute name="label">
@@ -430,7 +433,7 @@
          <x>0</x>
          <y>0</y>
          <width>148</width>
-         <height>330</height>
+         <height>361</height>
         </rect>
        </property>
        <attribute name="label">
@@ -642,7 +645,7 @@
          <x>0</x>
          <y>0</y>
          <width>148</width>
-         <height>330</height>
+         <height>361</height>
         </rect>
        </property>
        <attribute name="label">
@@ -734,7 +737,7 @@
      <x>0</x>
      <y>0</y>
      <width>933</width>
-     <height>27</height>
+     <height>20</height>
     </rect>
    </property>
   </widget>

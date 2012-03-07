@@ -32,6 +32,7 @@ MapWidget::MapWidget(QWidget *parent) :
     progressBar.resize(width(),30);
     selection =  SEL_LIGNE;
     selectionOverlay->setSelectionType(SEL_LIGNE);
+    connect(selectionOverlay,SIGNAL(gotoLongLat(QPointF)),this,SLOT(goToLongLat(QPointF)));
 }
 
 
@@ -39,6 +40,11 @@ void MapWidget::engineReady()
 {
     //Metz
     goToLongLat(6.17862,49.1133);
+}
+
+void MapWidget::goToLongLat(QPointF longLat)
+{
+    goToLongLat(longLat.x(),longLat.y());
 }
 
 void MapWidget::goToLongLat(double longitude, double latitude)
@@ -469,6 +475,7 @@ void MapWidget::loadGPX()
                                         QString("."),QString("*.gpx"));
     if(!filename.isEmpty())
         selectionOverlay->loadTraceFromGPX(filename);
+
 }
 
 void MapWidget::removeTraces()

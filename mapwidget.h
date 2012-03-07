@@ -28,6 +28,8 @@ public:
     double getLongitude() {return geoEngine->convertToLongitude(center.x());}
     double getLatitude() {return geoEngine->convertToLatitude(center.y());}
     int getZoomLevelMin() {return zoomLevelMin[couche];}
+
+    Overlay* getOverlay(){return selectionOverlay;}
     QPoint convertScreenToMapNum(QPoint pos);
     QPoint convertScreenToMapXY(QPoint pos);
     QRect convertScreenToMapXY(QRect rect);
@@ -46,6 +48,7 @@ public slots:
     void engineReady();
     void updateMap();
     void goToLongLat(double longit, double latit);
+    void goToLongLat(QPointF longLat);
     void goToAddress(QString address);
     void setZoomLevel(int zoomLevel);
 

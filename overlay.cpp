@@ -5,6 +5,7 @@
 #include <QTextStream>
 #include <QDebug>
 #include <QDomDocument>
+#include <QFileInfo>
 
 Overlay::Overlay(MapWidget *parent) :
     QWidget(parent)
@@ -44,6 +45,12 @@ double Overlay::dist()
         }
     }
     return pixels*scaleRatio;
+}
+
+void Overlay::setListWidget(QListWidget *list)
+{
+     gpxList = list;
+     connect(gpxList,SIGNAL(itemClicked(QListWidgetItem*)),this,SLOT(showTrace(QListWidgetItem*)));
 }
 
 void Overlay::addPoint(QPoint point)
@@ -163,10 +170,24 @@ void Overlay::loadTraceFromGPX(QString filename)
                 trkpt = trkpt.nextSiblingElement("trkpt");
             }
             traces.append(trace);
+            if(gpxList)
+            {
+                QListWidgetItem* item = new QListWidgetItem(QFileInfo(filename).fileName(),gpxList);
+                item->setData(32,traces.size()-1);
+            }
+            update();
         }
 }
+
+void Overlay::showTrace(QListWidgetItem *trace)
+{
+    emit(gotoLongLat(traces[trace->data(32).toInt()][0]));
+}
+
 
 void Overlay::removeTraces()
 {
     traces.clear();
+    if(gpxList)
+        gpxList->clear();
 }
