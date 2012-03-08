@@ -58,6 +58,7 @@ public slots:
     void exportAtlas(int zoomLevel);
     void saveCache() {geoEngine->saveCachedTiles(&progressBar);}
     void setAutoSave(bool a){if(geoEngine){geoEngine->setAutoSave(a);}}
+    void setForceDL(bool force) {forceDL = force;}
     void setGeoEngineMode(GeoEngineMode mode) {if(geoEngine){geoEngine->setMode(mode);}}
     void receiveGeocode(QPointF geoCode);
 
@@ -103,6 +104,7 @@ private:
     int mapsMaxHeight;
 
     bool downTilesOnly;
+    bool forceDL;
 
     QPoint originalPos;
     QPoint startingPos;

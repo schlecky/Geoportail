@@ -97,7 +97,7 @@ void GeoEngine::saveTileToDisk(QUrl url, QByteArray dat)
     QDir dir(fileinfo.absolutePath());
     if(!dir.exists())
         dir.mkpath(dir.path());
-    if(!fileinfo.exists())
+    //if(!fileinfo.exists())
     {
         QFile cacheFile(fileinfo.filePath());
         cacheFile.open(QIODevice::WriteOnly);
@@ -347,11 +347,11 @@ void GeoEngine::requestFinished(QNetworkReply* reply)
 }
 
 //todo : rajouter une option pour forcer le téléchargement
-int GeoEngine::downloadImage(Couche couche, int x, int y, int zoomLevel)
+int GeoEngine::downloadImage(Couche couche, int x, int y, int zoomLevel,bool forceDl)
 {
     QFileInfo info(genereUrl(couche, x, y, zoomLevel).toString());
     info = QFileInfo(locateFile(tilesDir,info.fileName()));
-    if(!info.exists())
+    if(!info.exists() || forceDl)
     {
         if(mode==OFFLINE)
             info = QFileInfo(QString("noImg.jpg"));

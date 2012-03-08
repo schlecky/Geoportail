@@ -357,7 +357,7 @@ void MapWidget::downloadSelection(int zoomLevel,bool split, int maxWidth, int ma
         for(int i=selectedTilesRect.topLeft().x();i<=selectedTilesRect.bottomRight().x();i++)
             for(int j=selectedTilesRect.topLeft().y();j<=selectedTilesRect.bottomRight().y();j++)
             {
-                int id = geoEngine->downloadImage(CARTE_IGN,i,j,zoomLevel);
+                int id = geoEngine->downloadImage(CARTE_IGN,i,j,zoomLevel,forceDL);
                     toSavePositions.insert(id,QPoint(
                                                (i-selectedTilesRect.topLeft().x())*tileSize,
                                                ny-tileSize-(j-selectedTilesRect.topLeft().y())*tileSize)
@@ -428,7 +428,7 @@ void MapWidget::updateMap()
                 QPoint p = convertMapToScreenXY(geoEngine->convertNumTileToXY(tempTile->getNum(),zoomLevel));
                 tempTile->move(p);
                 downIds.insert(geoEngine->downloadImage(couche,tempTile->getNum().x(),
-                                                        tempTile->getNum().y(),zoomLevel),tempTile);
+                                                        tempTile->getNum().y(),zoomLevel,forceDL),tempTile);
                 tiles.append(tempTile);
             }
         }
