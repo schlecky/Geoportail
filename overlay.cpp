@@ -76,6 +76,26 @@ void Overlay::addPoint(QPoint point)
     }
 }
 
+
+void Overlay::drawDepart(QPoint start1, QPoint start2)
+{
+    QPainter painter(this);
+    painter.setPen(QPen(QBrush(Qt::blue),3));
+    painter.setBrush(QBrush(Qt::blue));
+    QPolygon fleche;
+    QPoint dir = start2-start1;
+    double norm = sqrt(dir.x()*dir.x() + dir.y()*dir.y());
+    dir = QPoint(floor(20*double(dir.x())/norm),floor(20*dir.y()/norm));
+    QPoint perp;
+    double alpha= double(dir.y())/double(dir.x());
+    perp = QPoint(floor(5*(-alpha+sqrt(alpha*alpha+4*alpha))),
+                  floor(5*(1-1/alpha*sqrt(alpha*alpha+4*alpha))));
+    fleche.append(start1+perp);
+    fleche.append(start1+dir);
+    fleche.append(start1-perp);
+    painter.drawConvexPolygon(fleche);
+}
+
 void Overlay::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
@@ -96,7 +116,6 @@ void Overlay::paintEvent(QPaintEvent *)
             painter.drawPolyline(selection);
             break;
         }
-
     }
     if(scaleOn)
     {
@@ -115,7 +134,6 @@ void Overlay::paintEvent(QPaintEvent *)
                          QPoint(this->width()-length-10,this->height()-13));
         painter.drawLine(QPoint(this->width()-10,this->height()-7),
                          QPoint(this->width()-10,this->height()-13));
-
         painter.drawText(QRect(this->width()-length-10,this->height()-25,
                                length,15), QString("%1 m").arg(dist),
                          QTextOption(Qt::AlignHCenter));
@@ -123,19 +141,27 @@ void Overlay::paintEvent(QPaintEvent *)
 
     // draw traces
     painter.setRenderHint(QPainter::Antialiasing);
-    painter.setPen(QPen(QBrush(Qt::blue),3));
     for(int i=0;i<traces.size();i++)
     {
         QPolygon trace;
         for(int j=0;j<traces[i].size();j++)
         {
-            //qDebug()<<traces[i][j].x()<<" "<<traces[i][j].y();
             trace.append(map->convertLongLatToScreenXY(traces[i][j]));
         }
+        painter.setPen(QPen(QColor(255,0,0,100),8));
         painter.drawPolyline(trace);
+        painter.setPen(QPen(QColor(0,0,255,200),3));
+        painter.drawPolyline(trace);
+       /*
+        if(trace.size()>1)
+            drawDepart(trace[0],trace[1]);
+        */
     }
     painter.end();
 }
+
+
+
 
 void Overlay::loadTraceFromGPX(QString filename)
 {

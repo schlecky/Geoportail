@@ -41,6 +41,8 @@ protected :
     virtual void paintEvent(QPaintEvent *);
 
 private :
+    void drawDepart(QPoint start1, QPoint start2);
+
     QPolygon selection;
     SelectionType selType;
     QVector<Trace> traces;
