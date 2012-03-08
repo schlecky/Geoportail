@@ -77,19 +77,32 @@ void Overlay::addPoint(QPoint point)
 }
 
 
-void Overlay::drawDepart(QPoint start1, QPoint start2)
+void Overlay::drawDepart(QPolygon trace)
 {
     QPainter painter(this);
+    QPoint start1 = trace[0];
+    int i=1;
+    while((i<trace.size()) && (trace[i].x()==trace[0].x()))
+        i++;
+    if(i==trace.size())
+        return;
+    QPoint start2 = trace[i];
+
     painter.setPen(QPen(QBrush(Qt::blue),3));
     painter.setBrush(QBrush(Qt::blue));
     QPolygon fleche;
     QPoint dir = start2-start1;
     double norm = sqrt(dir.x()*dir.x() + dir.y()*dir.y());
-    dir = QPoint(floor(20*double(dir.x())/norm),floor(20*dir.y()/norm));
+    dir = QPoint(floor(12*double(dir.x())/norm),floor(12*dir.y()/norm));
     QPoint perp;
-    double alpha= double(dir.y())/double(dir.x());
-    perp = QPoint(floor(5*(-alpha+sqrt(alpha*alpha+4*alpha))),
-                  floor(5*(1-1/alpha*sqrt(alpha*alpha+4*alpha))));
+    if(dir.x()==0)
+        perp = QPoint(3,0);
+    else
+    {
+        double alpha= double(dir.y())/double(dir.x());
+        perp = QPoint(floor(3*(-alpha+sqrt(alpha*alpha+4*alpha))),
+                      floor(3*(1-1/alpha*sqrt(alpha*alpha+4*alpha))));
+    }
     fleche.append(start1+perp);
     fleche.append(start1+dir);
     fleche.append(start1-perp);
@@ -152,10 +165,10 @@ void Overlay::paintEvent(QPaintEvent *)
         painter.drawPolyline(trace);
         painter.setPen(QPen(QColor(0,0,255,200),3));
         painter.drawPolyline(trace);
-       /*
+
         if(trace.size()>1)
-            drawDepart(trace[0],trace[1]);
-        */
+            drawDepart(trace);
+
     }
     painter.end();
 }
