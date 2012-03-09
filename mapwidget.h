@@ -29,7 +29,7 @@ public:
     double getLatitude() {return geoEngine->convertToLatitude(center.y());}
     int getZoomLevelMin() {return zoomLevelMin[couche];}
 
-    Overlay* getOverlay(){return selectionOverlay;}
+    Overlay* getOverlay(){return gpxOverlay;}
     QPoint convertScreenToMapNum(QPoint pos);
     QPoint convertScreenToMapXY(QPoint pos);
     QRect convertScreenToMapXY(QRect rect);
@@ -78,8 +78,12 @@ private:
     QRect tilesRect;    // le rectangles des tuiles en numeros
 
     void saveCalibrationToFile(QString filename,QRect mapXYRect, QSize mapSize);
+    void hideTiles();
+    void showTiles();
 
     Overlay* selectionOverlay;
+    Overlay* gpxOverlay;
+
     QList<Tile*> tiles;
     SelectionType selection;
 

@@ -7,6 +7,7 @@
 #include <QPolygon>
 #include <constants.h>
 #include <QListWidget>
+#include <QLabel>
 
 class MapWidget;
 
@@ -19,7 +20,6 @@ public:
     explicit Overlay(MapWidget *parent = 0);
     double dist();
     void setListWidget(QListWidget* list = NULL);
-
 signals:
     void gotoLongLat(QPointF longLat);
 
@@ -41,7 +41,7 @@ protected :
     virtual void paintEvent(QPaintEvent *);
 
 private :
-    void drawDepart(QPolygon trace);
+    void drawDepartArrivee(QPolygon trace);
 
     QPolygon selection;
     SelectionType selType;
@@ -53,6 +53,7 @@ private :
     int scaleLength(); // calcule la longueur de l'échelle en pixels
     int scaleDist();   // la distance représentée par l'échelle en m
     QListWidget* gpxList;
+
 };
 
 #endif // OVERLAY_H

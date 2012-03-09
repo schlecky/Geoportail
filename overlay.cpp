@@ -6,6 +6,7 @@
 #include <QDebug>
 #include <QDomDocument>
 #include <QFileInfo>
+#include <QLabel>
 
 Overlay::Overlay(MapWidget *parent) :
     QWidget(parent)
@@ -77,36 +78,32 @@ void Overlay::addPoint(QPoint point)
 }
 
 
-void Overlay::drawDepart(QPolygon trace)
+void Overlay::drawDepartArrivee(QPolygon trace)
 {
     QPainter painter(this);
-    QPoint start1 = trace[0];
-    int i=1;
-    while((i<trace.size()) && (trace[i].x()==trace[0].x()))
-        i++;
-    if(i==trace.size())
-        return;
-    QPoint start2 = trace[i];
 
-    painter.setPen(QPen(QBrush(Qt::blue),3));
-    painter.setBrush(QBrush(Qt::blue));
+    QPoint start = trace[0];
     QPolygon fleche;
-    QPoint dir = start2-start1;
-    double norm = sqrt(dir.x()*dir.x() + dir.y()*dir.y());
-    dir = QPoint(floor(12*double(dir.x())/norm),floor(12*dir.y()/norm));
-    QPoint perp;
-    if(dir.x()==0)
-        perp = QPoint(3,0);
-    else
-    {
-        double alpha= double(dir.y())/double(dir.x());
-        perp = QPoint(floor(3*(-alpha+sqrt(alpha*alpha+4*alpha))),
-                      floor(3*(1-1/alpha*sqrt(alpha*alpha+4*alpha))));
-    }
-    fleche.append(start1+perp);
-    fleche.append(start1+dir);
-    fleche.append(start1-perp);
+    fleche.append(start+QPoint(-5,6));
+    fleche.append(start+QPoint(5,0));
+    fleche.append(start+QPoint(-5,-6));
+    painter.setPen(QPen(QBrush(Qt::darkGreen),3));
+    painter.setBrush(QBrush(Qt::darkGreen));
     painter.drawConvexPolygon(fleche);
+
+    QPoint end = trace.back();
+    QPolygon croix;
+    croix.append(end+QPoint(-5,-5));
+    croix.append(end);
+    croix.append(end+QPoint(5,-5));
+    croix.append(end);
+    croix.append(end+QPoint(5,5));
+    croix.append(end);
+    croix.append(end+QPoint(-5,5));
+    croix.append(end);
+    painter.setPen(QPen(QBrush(Qt::red),3));
+    painter.setBrush(QBrush(Qt::red));
+    painter.drawConvexPolygon(croix);
 }
 
 void Overlay::paintEvent(QPaintEvent *)
@@ -167,8 +164,7 @@ void Overlay::paintEvent(QPaintEvent *)
         painter.drawPolyline(trace);
 
         if(trace.size()>1)
-            drawDepart(trace);
-
+            drawDepartArrivee(trace);
     }
     painter.end();
 }

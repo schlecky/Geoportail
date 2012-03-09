@@ -27,12 +27,14 @@ MapWidget::MapWidget(QWidget *parent) :
     setMouseTracking(true);
     selectionOverlay = new Overlay(this);
     selectionOverlay->setScaleRatio(1/(factRatio*xRatios[zoomLevel-1]));
+    gpxOverlay = new Overlay(this);
+    gpxOverlay->hideScale();
     progressBar.setParent(this);
     progressBar.show();
-    progressBar.resize(width(),30);
+    progressBar.resize(this->width(),30);
     selection =  SEL_LIGNE;
     selectionOverlay->setSelectionType(SEL_LIGNE);
-    connect(selectionOverlay,SIGNAL(gotoLongLat(QPointF)),this,SLOT(goToLongLat(QPointF)));
+    connect(gpxOverlay,SIGNAL(gotoLongLat(QPointF)),this,SLOT(goToLongLat(QPointF)));
 }
 
 
@@ -144,36 +146,6 @@ void MapWidget::receiveData(QByteArray array, int id)
 
 
 
-void MapWidget::mousePressEvent ( QMouseEvent * event )
-{
-   switch(event->button())
-   {
-        case Qt::NoButton:
-            break;
-        case Qt::MiddleButton:
-            break;
-        case Qt::RightButton:
-            moving = true;
-            originalPos = event->pos();
-            startingPos = event->pos();
-            selectionOverlay->hideSelection();
-            emit(setDLEnabled(false));
-            break;
-        case Qt::LeftButton:
-            selecting=true;
-            selectionOverlay->clear();
-            selectionOverlay->addPoint(event->pos());
-            selectionOverlay->showSelection();
-            if(selection == SEL_TELECHARGEMENT)
-            {
-                firstCorner = event->pos();
-                emit(setDLEnabled(true));
-            }
-            break;
-        default:
-            break;
-   }
-}
 
 void MapWidget::wheelEvent(QWheelEvent * event)
 {
@@ -193,9 +165,58 @@ void MapWidget::setZoomLevel(int zoom)
     downIds.clear();
     selectionOverlay->hideSelection();
     selectionOverlay->setScaleRatio(1/(factRatio*xRatios[zoomLevel-1]));
+    gpxOverlay->setScaleRatio(1/(factRatio*xRatios[zoomLevel-1]));
     emit(setDLEnabled(false));
     emit(zoomChanged(zoomLevel));
     updateMap();
+}
+
+void MapWidget::hideTiles()
+{
+    for(int i=0;i<tiles.size();i++)
+    {
+        tiles[i]->hide();
+    }
+}
+
+void MapWidget::showTiles()
+{
+    for(int i=0;i<tiles.size();i++)
+    {
+        tiles[i]->show();
+    }
+}
+
+void MapWidget::mousePressEvent ( QMouseEvent * event )
+{
+   switch(event->button())
+   {
+        case Qt::NoButton:
+            break;
+        case Qt::MiddleButton:
+            break;
+        case Qt::RightButton:
+            moving = true;
+            originalPos = event->pos();
+            startingPos = event->pos();
+            selectionOverlay->hideSelection();
+            emit(setDLEnabled(false));
+            gpxOverlay->hide();
+            break;
+        case Qt::LeftButton:
+            selecting=true;
+            selectionOverlay->clear();
+            selectionOverlay->addPoint(event->pos());
+            selectionOverlay->showSelection();
+            if(selection == SEL_TELECHARGEMENT)
+            {
+                firstCorner = event->pos();
+                emit(setDLEnabled(true));
+            }
+            break;
+        default:
+            break;
+   }
 }
 
 void MapWidget::mouseMoveEvent ( QMouseEvent * event )
@@ -214,15 +235,12 @@ void MapWidget::mouseMoveEvent ( QMouseEvent * event )
         temp.setY(-temp.y());
         center+=temp/xRatios[zoomLevel-1];
         originalPos = event->pos();
-
-        selectionOverlay->update();
     }
 
     if(selecting)
     {
         secondCorner = event->pos();
         selectionOverlay->addPoint(event->pos());
-        //selectionOverlay->setSelection(QRect(firstCorner,secondCorner));
         selectionOverlay->update();
         emit(afficheDist(selectionOverlay->dist()));
     }
@@ -235,7 +253,7 @@ void MapWidget::mouseReleaseEvent ( QMouseEvent * event )
         moving = false;
         emit(coordChange(geoEngine->convertToLongitude(center.x()),
                          geoEngine->convertToLatitude(center.y())));
-
+        gpxOverlay->show();
         //évite que la version windows plante ?
         QTimer::singleShot(1,this,SLOT(updateMap()));
     }
@@ -254,6 +272,7 @@ void MapWidget::resizeEvent(QResizeEvent *event)
     tilesRect = QRect();
     updateMap();
     selectionOverlay->resize(event->size());
+    gpxOverlay->resize(event->size());
     event->accept();
 }
 
@@ -446,6 +465,10 @@ void MapWidget::updateMap()
     tilesRect = newTilesRect;
     if(selectionOverlay)
         selectionOverlay->raise();
+    if(gpxOverlay)
+    {
+        gpxOverlay->raise();
+    }
 }
 
 void MapWidget::setSelectionType(SelectionType s)
@@ -474,12 +497,12 @@ void MapWidget::loadGPX()
     QString filename = QFileDialog::getOpenFileName(this,QString("Choisir un fichier"),
                                         QString("."),QString("*.gpx"));
     if(!filename.isEmpty())
-        selectionOverlay->loadTraceFromGPX(filename);
+        gpxOverlay->loadTraceFromGPX(filename);
 
 }
 
 void MapWidget::removeTraces()
 {
-    selectionOverlay->removeTraces();
-    selectionOverlay->update();
+    gpxOverlay->removeTraces();
+    gpxOverlay->update();
 }
