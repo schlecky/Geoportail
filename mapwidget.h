@@ -79,6 +79,8 @@ private:
     QRect tilesRect;    // le rectangles des tuiles en numeros
 
     void saveCalibrationToFile(QString filename,QRect mapXYRect, QSize mapSize);
+    void hideTiles();
+    void showTiles();
 
     Overlay* selectionOverlay;
     GpxOverlay * gpxOverlay;

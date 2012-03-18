@@ -28,6 +28,7 @@ MapWidget::MapWidget(QWidget *parent) :
     selectionOverlay = new Overlay(this);
     gpxOverlay = new GpxOverlay(this);
     selectionOverlay->setScaleRatio(1/(factRatio*xRatios[zoomLevel-1]));
+
     progressBar.setParent(this);
     progressBar.show();
     progressBar.resize(width(),30);
@@ -145,37 +146,6 @@ void MapWidget::receiveData(QByteArray array, int id)
 
 
 
-void MapWidget::mousePressEvent ( QMouseEvent * event )
-{
-   switch(event->button())
-   {
-        case Qt::NoButton:
-            break;
-        case Qt::MiddleButton:
-            break;
-        case Qt::RightButton:
-            moving = true;
-            originalPos = event->pos();
-            startingPos = event->pos();
-            selectionOverlay->hideSelection();
-            gpxOverlay->hide();
-            emit(setDLEnabled(false));
-            break;
-        case Qt::LeftButton:
-            selecting=true;
-            selectionOverlay->clear();
-            selectionOverlay->addPoint(event->pos());
-            selectionOverlay->showSelection();
-            if(selection == SEL_TELECHARGEMENT)
-            {
-                firstCorner = event->pos();
-                emit(setDLEnabled(true));
-            }
-            break;
-        default:
-            break;
-   }
-}
 
 void MapWidget::wheelEvent(QWheelEvent * event)
 {
@@ -195,9 +165,58 @@ void MapWidget::setZoomLevel(int zoom)
     downIds.clear();
     selectionOverlay->hideSelection();
     selectionOverlay->setScaleRatio(1/(factRatio*xRatios[zoomLevel-1]));
+    gpxOverlay->setScaleRatio(1/(factRatio*xRatios[zoomLevel-1]));
     emit(setDLEnabled(false));
     emit(zoomChanged(zoomLevel));
     updateMap();
+}
+
+void MapWidget::hideTiles()
+{
+    for(int i=0;i<tiles.size();i++)
+    {
+        tiles[i]->hide();
+    }
+}
+
+void MapWidget::showTiles()
+{
+    for(int i=0;i<tiles.size();i++)
+    {
+        tiles[i]->show();
+    }
+}
+
+void MapWidget::mousePressEvent ( QMouseEvent * event )
+{
+   switch(event->button())
+   {
+        case Qt::NoButton:
+            break;
+        case Qt::MiddleButton:
+            break;
+        case Qt::RightButton:
+            moving = true;
+            originalPos = event->pos();
+            startingPos = event->pos();
+            selectionOverlay->hideSelection();
+            emit(setDLEnabled(false));
+            gpxOverlay->hide();
+            break;
+        case Qt::LeftButton:
+            selecting=true;
+            selectionOverlay->clear();
+            selectionOverlay->addPoint(event->pos());
+            selectionOverlay->showSelection();
+            if(selection == SEL_TELECHARGEMENT)
+            {
+                firstCorner = event->pos();
+                emit(setDLEnabled(true));
+            }
+            break;
+        default:
+            break;
+   }
 }
 
 void MapWidget::mouseMoveEvent ( QMouseEvent * event )
@@ -216,16 +235,12 @@ void MapWidget::mouseMoveEvent ( QMouseEvent * event )
         temp.setY(-temp.y());
         center+=temp/xRatios[zoomLevel-1];
         originalPos = event->pos();
-
-        selectionOverlay->update();
-        gpxOverlay->update();
     }
 
     if(selecting)
     {
         secondCorner = event->pos();
         selectionOverlay->addPoint(event->pos());
-        //selectionOverlay->setSelection(QRect(firstCorner,secondCorner));
         selectionOverlay->update();
         emit(afficheDist(selectionOverlay->dist()));
     }
