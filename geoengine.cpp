@@ -4,6 +4,7 @@
 #include <QDirIterator>
 #include <QTimer>
 #include <QDomDocument>
+#include <QDir>
 
 GeoEngine::GeoEngine(GeoEngineMode m)
 {
@@ -12,7 +13,7 @@ GeoEngine::GeoEngine(GeoEngineMode m)
 
     mode = m;
 
-    tilesDir = QString("tiles");
+    tilesDir = QDir::currentPath()+QString("/tiles");
 
     // Les constantes pour les differents types d'images
     csteCouche.resize(10);
@@ -70,7 +71,6 @@ void GeoEngine::saveCachedTiles(QProgressBar* progressbar)
         it.next();
         if(it.fileInfo().isFile())
         {
-            //qDebug()<<it.fileName();
             QNetworkCacheMetaData metaData = cache->fileMetaData(it.filePath());
             QIODevice* data = cache->data(metaData.url());
             if(data)
@@ -89,7 +89,6 @@ void GeoEngine::saveTileToDisk(QUrl url, QByteArray dat)
     if(dat.size()==0)
         return;
     QFileInfo info(url.toString());
-    //qDebug()<<directory+QString("/")+info.fileName();
     QString relative = convertTileToDir(extractParamsFromFilename(info.fileName()));
     if(relative == QString("E"))
         return;
@@ -97,13 +96,12 @@ void GeoEngine::saveTileToDisk(QUrl url, QByteArray dat)
     QDir dir(fileinfo.absolutePath());
     if(!dir.exists())
         dir.mkpath(dir.path());
-    //if(!fileinfo.exists())
-    {
-        QFile cacheFile(fileinfo.filePath());
-        cacheFile.open(QIODevice::WriteOnly);
-        cacheFile.write(dat);
-        cacheFile.close();
-    }
+
+    QFile cacheFile(fileinfo.filePath());
+    cacheFile.open(QIODevice::WriteOnly);
+    cacheFile.write(dat);
+    cacheFile.close();
+
 }
 
 
@@ -258,7 +256,6 @@ QUrl GeoEngine::genereUrl(Couche couche, int x, int y, int zoomLevel)
     url.append(tabencryptnbr62x[xEncrypt.size()]);
     url.append(xEncrypt);
     url.append(yEncrypt);
-    //url.append(".jpg");
     url.append(formatCouche[couche]);
     return QUrl(url);
 }
@@ -351,7 +348,7 @@ int GeoEngine::downloadImage(Couche couche, int x, int y, int zoomLevel,bool for
 {
     QFileInfo info(genereUrl(couche, x, y, zoomLevel).toString());
     info = QFileInfo(locateFile(tilesDir,info.fileName()));
-    if(!info.exists() || forceDl)
+    if(!info.exists() || ((mode==CONNECTED) && forceDl))
     {
         if(mode==OFFLINE)
             info = QFileInfo(QString("noImg.jpg"));

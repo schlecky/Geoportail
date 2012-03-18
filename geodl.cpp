@@ -30,10 +30,7 @@ GeoDL::GeoDL()
     connect(ui.btnLoadGPX,SIGNAL(clicked()),ui.mapWidget,SLOT(loadGPX()));
     connect(ui.btnDelTraces,SIGNAL(clicked()),ui.mapWidget,SLOT(removeTraces()));
     ui.chkAutoSave->setChecked(true);
-    ui.mapWidget->getOverlay()->setListWidget(ui.gpxList);
-    //connect(mapWidget,SIGNAL(coordChange(double,double)),this,SLOT())
-   // mapWidget = new MapWidget;
-   // ui.vLayout->addWidget(mapWidget,2);
+    ui.mapWidget->getGpxOverlay()->setListWidget(ui.gpxList);
 }
 
 GeoDL::~GeoDL()

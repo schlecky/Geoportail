@@ -14,4 +14,4 @@ HEADERS = geodl.h \
     constants.h \
     overlay.h
 FORMS = mainWindow.ui
-LIBS += -static
+#LIBS += -static

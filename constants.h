@@ -47,7 +47,7 @@ typedef enum {
     SEL_CHEMIN
 } SelectionType;
 
-const int zoomLevelMin[4] = {4,2,4,4};
+const int zoomLevelMin[4] = {4,2,3,4};
 
 typedef struct {
     int x;

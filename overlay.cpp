@@ -6,6 +6,7 @@
 #include <QDebug>
 #include <QDomDocument>
 #include <QFileInfo>
+#include <QRadialGradient>
 
 Overlay::Overlay(MapWidget *parent) :
     QWidget(parent)
@@ -47,7 +48,7 @@ double Overlay::dist()
     return pixels*scaleRatio;
 }
 
-void Overlay::setListWidget(QListWidget *list)
+void GpxOverlay::setListWidget(QListWidget *list)
 {
      gpxList = list;
      connect(gpxList,SIGNAL(itemClicked(QListWidgetItem*)),this,SLOT(showTrace(QListWidgetItem*)));
@@ -65,49 +66,11 @@ void Overlay::addPoint(QPoint point)
             selection<<point;
         break;
     case SEL_CHEMIN:
-      /*  if(selection.size()>0)
-        {
-            if(QLineF(QPointF(point),QPointF(selection.back())).length()>2)
-                selection<<point;
-        }
-        else*/
             selection<<point;
         break;
     }
 }
 
-
-void Overlay::drawDepart(QPolygon trace)
-{
-    QPainter painter(this);
-    QPoint start1 = trace[0];
-    int i=1;
-    while((i<trace.size()) && (trace[i].x()==trace[0].x()))
-        i++;
-    if(i==trace.size())
-        return;
-    QPoint start2 = trace[i];
-
-    painter.setPen(QPen(QBrush(Qt::blue),3));
-    painter.setBrush(QBrush(Qt::blue));
-    QPolygon fleche;
-    QPoint dir = start2-start1;
-    double norm = sqrt(dir.x()*dir.x() + dir.y()*dir.y());
-    dir = QPoint(floor(12*double(dir.x())/norm),floor(12*dir.y()/norm));
-    QPoint perp;
-    if(dir.x()==0)
-        perp = QPoint(3,0);
-    else
-    {
-        double alpha= double(dir.y())/double(dir.x());
-        perp = QPoint(floor(3*(-alpha+sqrt(alpha*alpha+4*alpha))),
-                      floor(3*(1-1/alpha*sqrt(alpha*alpha+4*alpha))));
-    }
-    fleche.append(start1+perp);
-    fleche.append(start1+dir);
-    fleche.append(start1-perp);
-    painter.drawConvexPolygon(fleche);
-}
 
 void Overlay::paintEvent(QPaintEvent *)
 {
@@ -152,31 +115,24 @@ void Overlay::paintEvent(QPaintEvent *)
                          QTextOption(Qt::AlignHCenter));
     }
 
-    // draw traces
-    painter.setRenderHint(QPainter::Antialiasing);
-    for(int i=0;i<traces.size();i++)
-    {
-        QPolygon trace;
-        for(int j=0;j<traces[i].size();j++)
-        {
-            trace.append(map->convertLongLatToScreenXY(traces[i][j]));
-        }
-        painter.setPen(QPen(QColor(255,0,0,100),8));
-        painter.drawPolyline(trace);
-        painter.setPen(QPen(QColor(0,0,255,200),3));
-        painter.drawPolyline(trace);
-
-        if(trace.size()>1)
-            drawDepart(trace);
-
-    }
     painter.end();
 }
 
 
 
 
-void Overlay::loadTraceFromGPX(QString filename)
+
+
+GpxOverlay::GpxOverlay(MapWidget *parent) :
+    QWidget(parent)
+{
+    setPalette(Qt::transparent);
+    setAttribute(Qt::WA_TransparentForMouseEvents);
+    map=parent;
+}
+
+
+void GpxOverlay::loadTraceFromGPX(QString filename)
 {
     QDomDocument gpx;
     QFile fichier(filename);
@@ -218,15 +174,62 @@ void Overlay::loadTraceFromGPX(QString filename)
         }
 }
 
-void Overlay::showTrace(QListWidgetItem *trace)
+void GpxOverlay::showTrace(QListWidgetItem *trace)
 {
     emit(gotoLongLat(traces[trace->data(32).toInt()][0]));
 }
 
 
-void Overlay::removeTraces()
+void GpxOverlay::removeTraces()
 {
     traces.clear();
     if(gpxList)
         gpxList->clear();
+}
+
+void GpxOverlay::drawDepart(QPolygon trace)
+{
+    QPainter painter(this);
+    QPoint start = trace[0];
+    QRadialGradient gradient;
+    //gradient.setCoordinateMode(QGradient::StretchToDeviceMode);
+    gradient.setFocalPoint(start);
+    gradient.setCenter(start);
+    gradient.setRadius(15);
+    gradient.setColorAt(0,Qt::darkGreen);
+   // gradient.setColorAt(4,Qt::darkGreen);
+    gradient.setColorAt(1,Qt::transparent);
+
+    painter.setBrush(QBrush(gradient));
+    //painter.setPen(QPen(QColor(0,150,0,200),6));
+    painter.fillRect(rect(),gradient);
+    //painter.drawEllipse(start,50,50);
+    painter.setPen(QPen(QBrush(Qt::blue),1));
+    painter.setBrush(QBrush(Qt::darkGreen));
+    painter.drawEllipse(start,5,5);
+
+}
+
+void GpxOverlay::paintEvent(QPaintEvent *)
+{
+    QPainter painter(this);
+    // draw traces
+    painter.setRenderHint(QPainter::Antialiasing);
+    for(int i=0;i<traces.size();i++)
+    {
+        QPolygon trace;
+        for(int j=0;j<traces[i].size();j++)
+        {
+            trace.append(map->convertLongLatToScreenXY(traces[i][j]));
+        }
+        painter.setPen(QPen(QColor(255,0,0,100),8));
+        painter.drawPolyline(trace);
+        painter.setPen(QPen(QColor(0,0,255,200),3));
+        painter.drawPolyline(trace);
+
+        if(trace.size()>1)
+            drawDepart(trace);
+
+    }
+    painter.end();
 }

@@ -26,13 +26,14 @@ MapWidget::MapWidget(QWidget *parent) :
     moving = false;
     setMouseTracking(true);
     selectionOverlay = new Overlay(this);
+    gpxOverlay = new GpxOverlay(this);
     selectionOverlay->setScaleRatio(1/(factRatio*xRatios[zoomLevel-1]));
     progressBar.setParent(this);
     progressBar.show();
     progressBar.resize(width(),30);
     selection =  SEL_LIGNE;
     selectionOverlay->setSelectionType(SEL_LIGNE);
-    connect(selectionOverlay,SIGNAL(gotoLongLat(QPointF)),this,SLOT(goToLongLat(QPointF)));
+    connect(gpxOverlay,SIGNAL(gotoLongLat(QPointF)),this,SLOT(goToLongLat(QPointF)));
 }
 
 
@@ -157,6 +158,7 @@ void MapWidget::mousePressEvent ( QMouseEvent * event )
             originalPos = event->pos();
             startingPos = event->pos();
             selectionOverlay->hideSelection();
+            gpxOverlay->hide();
             emit(setDLEnabled(false));
             break;
         case Qt::LeftButton:
@@ -216,6 +218,7 @@ void MapWidget::mouseMoveEvent ( QMouseEvent * event )
         originalPos = event->pos();
 
         selectionOverlay->update();
+        gpxOverlay->update();
     }
 
     if(selecting)
@@ -235,7 +238,7 @@ void MapWidget::mouseReleaseEvent ( QMouseEvent * event )
         moving = false;
         emit(coordChange(geoEngine->convertToLongitude(center.x()),
                          geoEngine->convertToLatitude(center.y())));
-
+        gpxOverlay->show();
         //évite que la version windows plante ?
         QTimer::singleShot(1,this,SLOT(updateMap()));
     }
@@ -254,6 +257,7 @@ void MapWidget::resizeEvent(QResizeEvent *event)
     tilesRect = QRect();
     updateMap();
     selectionOverlay->resize(event->size());
+    gpxOverlay->resize(event->size());
     event->accept();
 }
 
@@ -446,6 +450,7 @@ void MapWidget::updateMap()
     tilesRect = newTilesRect;
     if(selectionOverlay)
         selectionOverlay->raise();
+    gpxOverlay->raise();
 }
 
 void MapWidget::setSelectionType(SelectionType s)
@@ -474,12 +479,12 @@ void MapWidget::loadGPX()
     QString filename = QFileDialog::getOpenFileName(this,QString("Choisir un fichier"),
                                         QString("."),QString("*.gpx"));
     if(!filename.isEmpty())
-        selectionOverlay->loadTraceFromGPX(filename);
+        gpxOverlay->loadTraceFromGPX(filename);
 
 }
 
 void MapWidget::removeTraces()
 {
-    selectionOverlay->removeTraces();
-    selectionOverlay->update();
+    gpxOverlay->removeTraces();
+    gpxOverlay->update();
 }

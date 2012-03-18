@@ -17,6 +17,7 @@
 #include <QProgressBar>
 
 class Overlay;
+class GpxOverlay;
 
 class MapWidget : public QWidget
 {
@@ -29,7 +30,7 @@ public:
     double getLatitude() {return geoEngine->convertToLatitude(center.y());}
     int getZoomLevelMin() {return zoomLevelMin[couche];}
 
-    Overlay* getOverlay(){return selectionOverlay;}
+    GpxOverlay* getGpxOverlay(){return gpxOverlay;}
     QPoint convertScreenToMapNum(QPoint pos);
     QPoint convertScreenToMapXY(QPoint pos);
     QRect convertScreenToMapXY(QRect rect);
@@ -80,6 +81,7 @@ private:
     void saveCalibrationToFile(QString filename,QRect mapXYRect, QSize mapSize);
 
     Overlay* selectionOverlay;
+    GpxOverlay * gpxOverlay;
     QList<Tile*> tiles;
     SelectionType selection;
 
