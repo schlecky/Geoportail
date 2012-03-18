@@ -190,23 +190,55 @@ void GpxOverlay::removeTraces()
 void GpxOverlay::drawDepart(QPolygon trace)
 {
     QPainter painter(this);
-    QPoint start = trace[0];
+    painter.setRenderHint(QPainter::Antialiasing);
+
+    QPoint end = trace.back();
     QRadialGradient gradient;
-    //gradient.setCoordinateMode(QGradient::StretchToDeviceMode);
-    gradient.setFocalPoint(start);
-    gradient.setCenter(start);
-    gradient.setRadius(15);
-    gradient.setColorAt(0,Qt::darkGreen);
-   // gradient.setColorAt(4,Qt::darkGreen);
+    gradient.setFocalPoint(end);
+    gradient.setCenter(end);
+    gradient.setRadius(10);
+    gradient.setColorAt(0,Qt::white);
+    gradient.setColorAt(0.5,Qt::white);
+    gradient.setColorAt(0.6,Qt::red);
     gradient.setColorAt(1,Qt::transparent);
 
     painter.setBrush(QBrush(gradient));
-    //painter.setPen(QPen(QColor(0,150,0,200),6));
     painter.fillRect(rect(),gradient);
-    //painter.drawEllipse(start,50,50);
-    painter.setPen(QPen(QBrush(Qt::blue),1));
+
+    painter.setPen(QPen(QColor(Qt::red),2));
+    painter.setBrush(QBrush(Qt::red));
+    QPolygon croix;
+    croix.append(end);
+    croix.append(end+QPoint(3,3));
+    croix.append(end);
+    croix.append(end+QPoint(-3,3));
+    croix.append(end);
+    croix.append(end+QPoint(-3,-3));
+    croix.append(end);
+    croix.append(end+QPoint(3,-3));
+    painter.drawPolygon(croix);
+
+
+    QPoint start = trace[0];
+    gradient.stops().clear();
+    gradient.setFocalPoint(start);
+    gradient.setCenter(start);
+    gradient.setRadius(10);
+    gradient.setColorAt(0,Qt::white);
+    gradient.setColorAt(0.5,Qt::white);
+    gradient.setColorAt(0.6,Qt::darkGreen);
+    gradient.setColorAt(1,Qt::transparent);
+
+    painter.setBrush(QBrush(gradient));
+    painter.fillRect(rect(),gradient);
+
+    painter.setPen(QPen(QColor(Qt::darkGreen),1));
     painter.setBrush(QBrush(Qt::darkGreen));
-    painter.drawEllipse(start,5,5);
+    QPolygon fleche;
+    fleche.append(start+QPoint(3,0));
+    fleche.append(start+QPoint(-3,2));
+    fleche.append(start+QPoint(-3,-2));
+    painter.drawPolygon(fleche);
 
 }
 
