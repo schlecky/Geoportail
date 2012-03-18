@@ -23,6 +23,7 @@ MapWidget::MapWidget(QWidget *parent) :
     geoEngine->init();
     zoomLevel = 10;
     couche = CARTE_IGN;
+    forceDL=false;
     moving = false;
     setMouseTracking(true);
     selectionOverlay = new Overlay(this);
