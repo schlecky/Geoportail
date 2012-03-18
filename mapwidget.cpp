@@ -165,7 +165,6 @@ void MapWidget::setZoomLevel(int zoom)
     downIds.clear();
     selectionOverlay->hideSelection();
     selectionOverlay->setScaleRatio(1/(factRatio*xRatios[zoomLevel-1]));
-    gpxOverlay->setScaleRatio(1/(factRatio*xRatios[zoomLevel-1]));
     emit(setDLEnabled(false));
     emit(zoomChanged(zoomLevel));
     updateMap();
