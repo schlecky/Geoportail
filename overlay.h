@@ -7,10 +7,17 @@
 #include <QPolygon>
 #include <constants.h>
 #include <QListWidget>
+#include <QDateTime>
 
 class MapWidget;
 
-typedef QVector<QPointF> Trace ;
+typedef struct{
+    QPointF coords;
+    double elevation;
+    QDateTime time;
+} gpxPoint;
+
+typedef QVector<gpxPoint> Trace ;
 
 
 class GpxOverlay : public QWidget

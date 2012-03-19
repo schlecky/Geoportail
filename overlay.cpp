@@ -160,8 +160,14 @@ void GpxOverlay::loadTraceFromGPX(QString filename)
             Trace trace;
             while (!trkpt.isNull()) {
                 QDomNamedNodeMap attr = trkpt.attributes();
-                trace.append(QPointF(attr.namedItem("lon").nodeValue().toDouble(),
-                                     attr.namedItem("lat").nodeValue().toDouble()));
+                gpxPoint pt;
+                pt.coords = QPointF(attr.namedItem("lon").nodeValue().toDouble(),
+                                             attr.namedItem("lat").nodeValue().toDouble());
+                QDomElement ele= trkpt.firstChildElement("ele");
+                pt.elevation = ele.firstChild().nodeValue().toDouble();
+                QDomElement time= trkpt.firstChildElement("time");
+                pt.time = QDateTime::fromString(time.firstChild().nodeValue(),"yyyy-MM-ddTHH:mm:ssZ");
+                trace.append(pt);
                 trkpt = trkpt.nextSiblingElement("trkpt");
             }
             traces.append(trace);
@@ -176,7 +182,7 @@ void GpxOverlay::loadTraceFromGPX(QString filename)
 
 void GpxOverlay::showTrace(QListWidgetItem *trace)
 {
-    emit(gotoLongLat(traces[trace->data(32).toInt()][0]));
+    emit(gotoLongLat(traces[trace->data(32).toInt()][0].coords));
 }
 
 
@@ -252,7 +258,7 @@ void GpxOverlay::paintEvent(QPaintEvent *)
         QPolygon trace;
         for(int j=0;j<traces[i].size();j++)
         {
-            trace.append(map->convertLongLatToScreenXY(traces[i][j]));
+            trace.append(map->convertLongLatToScreenXY(traces[i][j].coords));
         }
         painter.setPen(QPen(QColor(255,0,0,100),8));
         painter.drawPolyline(trace);
