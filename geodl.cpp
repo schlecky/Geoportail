@@ -14,6 +14,7 @@
 #include <QNetworkRequest>
 #include <QPainter>
 #include <QFileDialog>
+#include <QDebug>
 
 #include "geodl.h"
 
@@ -41,6 +42,7 @@ GeoDL::~GeoDL()
 int main(int argc, char* argv[])
 {
     QApplication app(argc,argv);
+    app.addLibraryPath(QDir::currentPath());
     GeoDL geodl;
     geodl.show();
     return app.exec();

@@ -193,10 +193,9 @@ void GpxOverlay::removeTraces()
         gpxList->clear();
 }
 
-void GpxOverlay::drawDepart(QPolygon trace)
+void GpxOverlay::drawDepart(QPolygon trace, QPainter* painter)
 {
-    QPainter painter(this);
-    painter.setRenderHint(QPainter::Antialiasing);
+    painter->setRenderHint(QPainter::Antialiasing);
 
     QPoint end = trace.back();
     QRadialGradient gradient;
@@ -208,11 +207,11 @@ void GpxOverlay::drawDepart(QPolygon trace)
     gradient.setColorAt(0.6,Qt::red);
     gradient.setColorAt(1,Qt::transparent);
 
-    painter.setBrush(QBrush(gradient));
-    painter.fillRect(rect(),gradient);
+    painter->setBrush(QBrush(gradient));
+    painter->fillRect(rect(),gradient);
 
-    painter.setPen(QPen(QColor(Qt::red),2));
-    painter.setBrush(QBrush(Qt::red));
+    painter->setPen(QPen(QColor(Qt::red),2));
+    painter->setBrush(QBrush(Qt::red));
     QPolygon croix;
     croix.append(end);
     croix.append(end+QPoint(3,3));
@@ -222,7 +221,7 @@ void GpxOverlay::drawDepart(QPolygon trace)
     croix.append(end+QPoint(-3,-3));
     croix.append(end);
     croix.append(end+QPoint(3,-3));
-    painter.drawPolygon(croix);
+    painter->drawPolygon(croix);
 
 
     QPoint start = trace[0];
@@ -235,17 +234,16 @@ void GpxOverlay::drawDepart(QPolygon trace)
     gradient.setColorAt(0.6,Qt::darkGreen);
     gradient.setColorAt(1,Qt::transparent);
 
-    painter.setBrush(QBrush(gradient));
-    painter.fillRect(rect(),gradient);
+    painter->setBrush(QBrush(gradient));
+    painter->fillRect(rect(),gradient);
 
-    painter.setPen(QPen(QColor(Qt::darkGreen),1));
-    painter.setBrush(QBrush(Qt::darkGreen));
+    painter->setPen(QPen(QColor(Qt::darkGreen),1));
+    painter->setBrush(QBrush(Qt::darkGreen));
     QPolygon fleche;
     fleche.append(start+QPoint(3,0));
     fleche.append(start+QPoint(-3,2));
     fleche.append(start+QPoint(-3,-2));
-    painter.drawPolygon(fleche);
-
+    painter->drawPolygon(fleche);
 }
 
 void GpxOverlay::paintEvent(QPaintEvent *)
@@ -253,9 +251,10 @@ void GpxOverlay::paintEvent(QPaintEvent *)
     QPainter painter(this);
     // draw traces
     painter.setRenderHint(QPainter::Antialiasing);
+    QPolygon trace;
     for(int i=0;i<traces.size();i++)
     {
-        QPolygon trace;
+        trace.clear();
         for(int j=0;j<traces[i].size();j++)
         {
             trace.append(map->convertLongLatToScreenXY(traces[i][j].coords));
@@ -266,8 +265,7 @@ void GpxOverlay::paintEvent(QPaintEvent *)
         painter.drawPolyline(trace);
 
         if(trace.size()>1)
-            drawDepart(trace);
-
+            drawDepart(trace, &painter);
     }
     painter.end();
 }

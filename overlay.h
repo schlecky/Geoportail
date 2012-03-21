@@ -39,7 +39,7 @@ class GpxOverlay : public QWidget
 
 
     private :
-        void drawDepart(QPolygon trace);
+        void drawDepart(QPolygon trace, QPainter* painter);
         QVector<Trace> traces;
         MapWidget* map;
         QListWidget* gpxList;
