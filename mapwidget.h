@@ -16,7 +16,9 @@
 #include "overlay.h"
 #include <QProgressBar>
 
-class Overlay;
+class SelectionOverlay;
+class ScaleOverlay;
+class CircleOverlay;
 class GpxOverlay;
 
 class MapWidget : public QWidget
@@ -28,9 +30,11 @@ public:
     void setSelectionType(SelectionType s);
     double getLongitude() {return geoEngine->convertToLongitude(center.x());}
     double getLatitude() {return geoEngine->convertToLatitude(center.y());}
-    int getZoomLevelMin() {return zoomLevelMin[couche];}
+    int getZoomLevelMax() {return zoomLevelMax[couche];}
+    double scaleRatio(){return resolutions[zoomLevel];}
 
     GpxOverlay* getGpxOverlay(){return gpxOverlay;}
+
     QPoint convertScreenToMapNum(QPoint pos);
     QPoint convertScreenToMapXY(QPoint pos);
     QRect convertScreenToMapXY(QRect rect);
@@ -68,6 +72,13 @@ public slots:
     //supprime toutes les traces
     void removeTraces();
 
+    // Ajoute un cercle
+    void addCircle(QPointF coords, double rayon);
+    void clearCircles();
+
+    // Affiche le réticule
+    void toggleCrosshair(bool cross);
+
 
 private:
     //QList<Tile*> tiles;
@@ -82,8 +93,11 @@ private:
     void hideTiles();
     void showTiles();
 
-    Overlay* selectionOverlay;
+    SelectionOverlay* selectionOverlay;
+    ScaleOverlay* scaleOverlay;
+    CircleOverlay* circleOverlay;
     GpxOverlay * gpxOverlay;
+
     QList<Tile*> tiles;
     SelectionType selection;
 

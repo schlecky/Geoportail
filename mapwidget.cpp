@@ -21,14 +21,16 @@ MapWidget::MapWidget(QWidget *parent) :
     connect(geoEngine,SIGNAL(ready()),this,SLOT(engineReady()));
     connect(geoEngine,SIGNAL(geocodeReceived(QPointF)),this,SLOT(receiveGeocode(QPointF)));
     geoEngine->init();
-    zoomLevel = 10;
+    zoomLevel = 6;
     couche = CARTE_IGN;
     forceDL=false;
     moving = false;
     setMouseTracking(true);
-    selectionOverlay = new Overlay(this);
+
+    selectionOverlay = new SelectionOverlay(this);
+    scaleOverlay = new ScaleOverlay(this);
+    circleOverlay = new CircleOverlay(this);
     gpxOverlay = new GpxOverlay(this);
-    selectionOverlay->setScaleRatio(1/(factRatio*xRatios[zoomLevel-1]));
 
     progressBar.setParent(this);
     progressBar.show();
@@ -85,7 +87,7 @@ QPoint MapWidget::convertScreenToMapNum(QPoint pos)
 
 QPoint MapWidget::convertMapToScreenXY(QPoint pos)
 {
-    QPoint temp = (pos-center)*xRatios[zoomLevel-1];
+    QPoint temp = geoEngine->convertMapXYToPix(pos-center,zoomLevel);
     temp.setY(-temp.y());
     return rect().bottomRight()/2+temp;
 }
@@ -150,9 +152,9 @@ void MapWidget::receiveData(QByteArray array, int id)
 
 void MapWidget::wheelEvent(QWheelEvent * event)
 {
-    int zoom = zoomLevel - event->delta()/120;
-    if(zoom<zoomLevelMin[couche])
-        zoom=zoomLevelMin[couche];
+    int zoom = zoomLevel + event->delta()/120;
+    if(zoom>zoomLevelMax[couche])
+        zoom=zoomLevelMax[couche];
     else
         setZoomLevel(zoom);
 }
@@ -165,7 +167,7 @@ void MapWidget::setZoomLevel(int zoom)
         delete tiles.takeFirst();
     downIds.clear();
     selectionOverlay->hideSelection();
-    selectionOverlay->setScaleRatio(1/(factRatio*xRatios[zoomLevel-1]));
+    //selectionOverlay->setScaleRatio(1/(factRatio*xRatios[zoomLevel-1]));
     emit(setDLEnabled(false));
     emit(zoomChanged(zoomLevel));
     updateMap();
@@ -233,7 +235,7 @@ void MapWidget::mouseMoveEvent ( QMouseEvent * event )
         }
         QPoint temp = -event->pos()+originalPos;
         temp.setY(-temp.y());
-        center+=temp/xRatios[zoomLevel-1];
+        center+=geoEngine->convertPixToMapXY(temp,zoomLevel);
         originalPos = event->pos();
     }
 
@@ -254,7 +256,7 @@ void MapWidget::mouseReleaseEvent ( QMouseEvent * event )
         emit(coordChange(geoEngine->convertToLongitude(center.x()),
                          geoEngine->convertToLatitude(center.y())));
         gpxOverlay->show();
-        //�vite que la version windows plante ?
+        //évite que la version windows plante ?
         QTimer::singleShot(1,this,SLOT(updateMap()));
     }
 
@@ -285,8 +287,8 @@ void MapWidget::setCouche(Couche c)
         while(tiles.size())
             delete tiles.takeFirst();
         downIds.clear();
-        if(zoomLevel<zoomLevelMin[couche])
-            zoomLevel=zoomLevelMin[couche];
+        if(zoomLevel>zoomLevelMax[couche])
+            zoomLevel=zoomLevelMax[couche];
         updateMap();
     }
 }
@@ -318,8 +320,8 @@ void MapWidget::downloadSelection(int zoomLevel,bool split, int maxWidth, int ma
     }
 
     QPoint dxy = geoEngine->convertPixToMapXY(QPoint(maxWidth,maxHeight),zoomLevel);
-    int dx =  dxy.x(); //Largeur d'une partie de carte en coordonnées carte
-    int dy =  dxy.y(); //Hauteur d'une partie de carte en coordonnées carte
+    int dx =  dxy.x(); //Largeur d'une partie de carte en coordonnÃ©es carte
+    int dy =  dxy.y(); //Hauteur d'une partie de carte en coordonnÃ©es carte
 
     toSavePositions.clear();
     if(QMessageBox::question(this,tr("Telechargement"),
@@ -340,7 +342,7 @@ void MapWidget::downloadSelection(int zoomLevel,bool split, int maxWidth, int ma
         downTilesOnly = tilesOnly;
         if(!tilesOnly)
         {
-            // Prépare les cartes splitées
+            // PrÃ©pare les cartes splitÃ©es
             for(int i=0;i<nx/maxWidth;i++)
                 for(int j=0;j<ny/maxHeight;j++)
                 {
@@ -436,7 +438,7 @@ void MapWidget::saveCalibrationToFile(QString filename,QRect mapXYRect, QSize ma
 
 void MapWidget::updateMap()
 {
-    QRect newTilesRect = QRect(convertScreenToMapNum(rect().bottomLeft()),convertScreenToMapNum(rect().topRight()));
+    QRect newTilesRect = QRect(convertScreenToMapNum(rect().bottomLeft()),convertScreenToMapNum(rect().topRight())).normalized();
     for(int i=newTilesRect.left();i<=newTilesRect.right();i++)
         for(int j=newTilesRect.top();j<=newTilesRect.bottom();j++)
         {
@@ -466,6 +468,7 @@ void MapWidget::updateMap()
     if(selectionOverlay)
         selectionOverlay->raise();
     gpxOverlay->raise();
+    circleOverlay->raise();
 }
 
 void MapWidget::setSelectionType(SelectionType s)
@@ -502,4 +505,19 @@ void MapWidget::removeTraces()
 {
     gpxOverlay->removeTraces();
     gpxOverlay->update();
+}
+
+void MapWidget::addCircle(QPointF coords, double rayon)
+{
+    circleOverlay->addCircle(coords,rayon);
+}
+
+void MapWidget::clearCircles()
+{
+    circleOverlay->clearCircles();
+}
+
+void MapWidget::toggleCrosshair(bool cross)
+{
+    circleOverlay->toggleCrosshair(cross);
 }

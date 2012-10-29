@@ -29,18 +29,18 @@ public:
     QPoint convertNumTileToXY(QPoint xy, int zoomLevel);
     QPoint convertPixToMapXY(QPoint pix,int zoomLevel);
     QPoint convertMapXYToPix(QPoint xy,int zoomLevel);
-    int downloadImage(Couche couche, int x, int y, int zoomLevel, bool forceDl=false);      // telecharge une image et renvoie l'identification du téléchargement
+    int downloadImage(Couche couche, int x, int y, int zoomLevel, bool forceDl=false);      // telecharge une image et renvoie l'identification du tÃ©lÃ©chargement
     bool isInitialized(){return initialized;}
     void saveCachedTiles(QProgressBar* progressbar);
     TuileParams extractParamsFromFilename(QString filename);
-    void getCoord(QString address); //trouve les coordonnées correspondant �  une adresse
+    void getCoord(QString address); //trouve les coordonnÃ©es correspondant Ã  une adresse
 
 public slots:
     void setAutoSave(bool a) {autoSave = a;}
     void setMode(GeoEngineMode m) {mode =m;}
 
 signals :
-        void dataReady(QByteArray data, int id);        // les données pour l'id sont pretes
+        void dataReady(QByteArray data, int id);        // les donnÃ©es pour l'id sont pretes
         void geocodeReceived(QPointF coords);
         void ready();
 
@@ -84,6 +84,8 @@ private:
     GeoEngineMode mode;
     bool initialized;
     bool autoSave;
+
+    QPoint originXY;
 };
 
 #endif // GEOENGINE_H

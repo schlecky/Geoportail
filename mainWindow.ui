@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>933</width>
-    <height>554</height>
+    <width>974</width>
+    <height>684</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -42,7 +42,7 @@
        <enum>QFrame::Panel</enum>
       </property>
       <property name="currentIndex">
-       <number>4</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="pgMesures">
        <property name="geometry">
@@ -50,7 +50,7 @@
          <x>0</x>
          <y>0</y>
          <width>148</width>
-         <height>361</height>
+         <height>462</height>
         </rect>
        </property>
        <attribute name="label">
@@ -59,6 +59,13 @@
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
          <widget class="QLabel" name="label_5">
+          <property name="font">
+           <font>
+            <weight>75</weight>
+            <bold>true</bold>
+            <underline>false</underline>
+           </font>
+          </property>
           <property name="text">
            <string>Distance</string>
           </property>
@@ -104,6 +111,67 @@
          </widget>
         </item>
         <item>
+         <widget class="QLabel" name="label_7">
+          <property name="font">
+           <font>
+            <weight>75</weight>
+            <bold>true</bold>
+            <underline>false</underline>
+           </font>
+          </property>
+          <property name="text">
+           <string>Triangulation</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_9">
+          <property name="text">
+           <string>Latitude centre</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="edtCircLat"/>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_8">
+          <property name="text">
+           <string>Longitude centre</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="edtCircLong"/>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_10">
+          <property name="text">
+           <string>Rayon (m)</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="edtCircR"/>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btnAddCircle">
+          <property name="text">
+           <string>Ajouter cercle</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btnDelCircles">
+          <property name="text">
+           <string>Supprimer cercles</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <spacer name="verticalSpacer_5">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
@@ -124,13 +192,20 @@
          <x>0</x>
          <y>0</y>
          <width>148</width>
-         <height>361</height>
+         <height>462</height>
         </rect>
        </property>
        <attribute name="label">
         <string>Affichage</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <widget class="QCheckBox" name="chkReticule">
+          <property name="text">
+           <string>Réticule</string>
+          </property>
+         </widget>
+        </item>
         <item>
          <widget class="QLabel" name="label_6">
           <property name="font">
@@ -301,7 +376,7 @@
          <x>0</x>
          <y>0</y>
          <width>148</width>
-         <height>361</height>
+         <height>462</height>
         </rect>
        </property>
        <attribute name="label">
@@ -433,7 +508,7 @@
          <x>0</x>
          <y>0</y>
          <width>148</width>
-         <height>361</height>
+         <height>462</height>
         </rect>
        </property>
        <attribute name="label">
@@ -644,8 +719,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>148</width>
-         <height>361</height>
+         <width>171</width>
+         <height>447</height>
         </rect>
        </property>
        <attribute name="label">
@@ -743,8 +818,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>933</width>
-     <height>20</height>
+     <width>974</width>
+     <height>25</height>
     </rect>
    </property>
   </widget>

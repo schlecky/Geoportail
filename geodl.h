@@ -51,4 +51,8 @@ private slots:
         void on_toolBox_currentChanged(int index);
         void on_btnGotoAddress_clicked();
         void on_btnAtlas_clicked();
+        void on_btnAddCircle_clicked();
+        void on_btnDelCircles_clicked();
+        void on_checkBox_toggled(bool checked);
+        void on_chkReticule_toggled(bool checked);
 };

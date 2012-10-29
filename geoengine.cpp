@@ -12,23 +12,24 @@ GeoEngine::GeoEngine(GeoEngineMode m)
     cache = new QNetworkDiskCache();
 
     mode = m;
-
+    originXY = QPoint(-20037508,20037508);
     tilesDir = QDir::currentPath()+QString("/tiles");
 
     // Les constantes pour les differents types d'images
     csteCouche.resize(10);
     formatCouche.resize(10);
-    csteCouche[CARTE_IGN] = QString("8u6");
-    formatCouche[CARTE_IGN] = QString(".jpg");
+    csteCouche[CARTE_IGN] = QString("GEOGRAPHICALGRIDSYSTEMS.MAPS");
+    formatCouche[CARTE_IGN] = QString("image/jpeg");
 
-    csteCouche[PHOTOS] = QString("UxG");
-    formatCouche[PHOTOS] = QString(".jpg");
+    csteCouche[PHOTOS] = QString("ORTHOIMAGERY.ORTHOPHOTOS");
+    formatCouche[PHOTOS] = QString("image/jpeg");
 
-    csteCouche[CASSINI] = QString("CkS");// Cassini
-    formatCouche[CASSINI] = QString(".jpg");
+    //GET /tyujsdxmzox31ituc2uw0qwl/geoportail/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&LAYER=GEOGRAPHICALGRIDSYSTEMS.CASSINI&STYLE=normal&FORMAT=image/jpeg&TILEMATRIXSET=PM&TILEMATRIX=12&TILEROW=1407&TILECOL=2116&
+    csteCouche[CASSINI] = QString("GEOGRAPHICALGRIDSYSTEMS.CASSINI");// Cassini
+    formatCouche[CASSINI] = QString("image/jpeg");
 
-    csteCouche[CADASTRE] = QString("8TX");
-    formatCouche[CADASTRE] = QString(".png");
+    csteCouche[CADASTRE] = QString("CADASTRALPARCELS.PARCELS");
+    formatCouche[CADASTRE] = QString("image/png");
 
     csteCouche[TEST] = QString("8fG");
     formatCouche[TEST] = QString(".png");
@@ -150,39 +151,47 @@ QString GeoEngine::convertTileToDir(TuileParams params)
     return dir;
 }
 
-
+// projection de long/lat vers mercator
 QPoint GeoEngine::convertLongLatToXY(double longi, double lati)
 {
-    int x = int(longi*pi/180 * r * cos(phi0));
-    int y = int(lati*pi/180  * r);
+    int x = longi*pi/180*r;
+    int y = log(tan((90 + lati) * pi / 360.0 )) * r;
+    qDebug()<<"long/lat :("<<longi<<","<<lati<<") => ("<<x<<","<<y<<")";
     return QPoint(x,y);
 }
 
+// projection inverse mercator -> longlat
 double GeoEngine::convertToLongitude(double x)
-{
-    return x/(r*cos(phi0))*180/pi;
-}
-
-double GeoEngine::convertToLatitude(double x)
 {
     return x/r*180/pi;
 }
 
+double GeoEngine::convertToLatitude(double x)
+{
+    double lat = x/r*180/pi;
+    return 180/pi*(2*atan(exp(lat*pi/180))-pi/2);
+}
+
 QPoint GeoEngine::convertXYToNumTile(QPoint xy, int zoomLevel)
 {
-    return QPoint(floor(xy.x()*xRatios[zoomLevel-1]/tileSize),
-                  floor(xy.y()*xRatios[zoomLevel-1]/tileSize));
+    return QPoint(floor((xy.x()-originXY.x())/resolutions[zoomLevel]/tileSize),
+                  -ceil((xy.y()-originXY.y())/resolutions[zoomLevel]/tileSize));
 }
 
 QPoint GeoEngine::convertNumTileToXY(QPoint xy, int zoomLevel)
 {
-    return QPoint(int(xy.x()*tileSize/xRatios[zoomLevel-1]),
-                  int((xy.y()+1)*tileSize/xRatios[zoomLevel-1]));
+    return originXY+QPoint(floor(xy.x()*tileSize*resolutions[zoomLevel]),
+                           -ceil(xy.y()*tileSize*resolutions[zoomLevel]));
 }
 
 QPoint GeoEngine::convertPixToMapXY(QPoint pix,int zoomLevel)
 {
-    return pix/xRatios[zoomLevel-1];
+    return pix*resolutions[zoomLevel];
+}
+
+QPoint GeoEngine::convertMapXYToPix(QPoint xy,int zoomLevel)
+{
+    return xy/resolutions[zoomLevel];
 }
 
 void GeoEngine::init()
@@ -232,6 +241,7 @@ int GeoEngine::decryptNbBase(QString nb, int base)
 
 QUrl GeoEngine::genereUrl(Couche couche, int x, int y, int zoomLevel)
 {
+    /*
     // adresse de base
     QString url("http://visu-2d.geoportail.fr/geoweb/maps");
     // ajoute la couche
@@ -257,6 +267,20 @@ QUrl GeoEngine::genereUrl(Couche couche, int x, int y, int zoomLevel)
     url.append(xEncrypt);
     url.append(yEncrypt);
     url.append(formatCouche[couche]);
+    */
+    //http://gpp3-wxs.ign.fr/tyujsdxmzox31ituc2uw0qwl/geoportail/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&LAYER=CADASTRALPARCELS.PARCELS&STYLE=bdparcellaire&FORMAT=image/png&TILEMATRIXSET=PM&TILEMATRIX=10&TILEROW=354&TILECOL=531&extParamId=aHR0cDovL3d3dy5nZW9wb3J0YWlsLmdvdXYuZnIvZG9ubmVlcw==
+//GET /tyujsdxmzox31ituc2uw0qwl/geoportail/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&LAYER=ORTHOIMAGERY.ORTHOPHOTOS&STYLE=normal&FORMAT=image/jpeg&TILEMATRIXSET=PM&TILEMATRIX=10&TILEROW=353&TILECOL=530&extParamId=aHR0cDovL3d3dy5nZW9wb3J0YWlsLmdvdXYuZnIvZG9ubmVlcw== HTTP/1.1
+
+    //http://gpp3-wxs.ign.fr/tyujsdxmzox31ituc2uw0qwl/geoportail/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&LAYER=GEOGRAPHICALGRIDSYSTEMS.MAPS&STYLE=normal&FORMAT=image/jpeg&TILEMATRIXSET=PM&TILEMATRIX=12&TILEROW=1424&TILECOL=2081
+    QString url("http://gpp3-wxs.ign.fr/tyujsdxmzox31ituc2uw0qwl/geoportail/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile");
+    url.append(QString("&LAYER=%1").arg(csteCouche[couche]));
+    url.append(QString("&STYLE=normal"));
+    url.append(QString("&FORMAT=%1").arg(formatCouche[couche]));
+    url.append(QString("&TILEMATRIXSET=PM"));
+    url.append(QString("&TILEMATRIX=%1").arg(zoomLevel));
+    url.append(QString("&TILEROW=%1").arg(y));
+    url.append(QString("&TILECOL=%1").arg(x));
+    qDebug()<<zoomLevel<<" "<<x<<" "<<y;
     return QUrl(url);
 }
 
@@ -399,9 +423,3 @@ void GeoEngine::getCoord(QString address)
     QNetworkRequest request(QString("http://maps.google.com/maps/geo?output=kml&q=%1").arg(address));
     geocodeReply = manager->get(request);
 }
-
-QPoint GeoEngine::convertMapXYToPix(QPoint xy, int zoomLevel)
-{
-    return xy*xRatios[zoomLevel-1];
-}
-

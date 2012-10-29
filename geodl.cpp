@@ -55,8 +55,8 @@ void GeoDL::on_radioCarte_toggled(bool checked)
     if(checked)
     {
         ui.mapWidget->setCouche(CARTE_IGN);
-        ui.sliderDisp->setMinimum(ui.mapWidget->getZoomLevelMin());
-        ui.sliderDown->setMinimum(ui.mapWidget->getZoomLevelMin());
+        ui.sliderDisp->setMaximum(ui.mapWidget->getZoomLevelMax());
+        ui.sliderDown->setMaximum(ui.mapWidget->getZoomLevelMax());
     }
 }
 
@@ -65,8 +65,8 @@ void GeoDL::on_radioPhotos_toggled(bool checked)
     if(checked)
     {
         ui.mapWidget->setCouche(PHOTOS);
-        ui.sliderDisp->setMinimum(ui.mapWidget->getZoomLevelMin());
-        ui.sliderDown->setMinimum(ui.mapWidget->getZoomLevelMin());
+        ui.sliderDisp->setMaximum(ui.mapWidget->getZoomLevelMax());
+        ui.sliderDown->setMaximum(ui.mapWidget->getZoomLevelMax());
     }
 }
 
@@ -75,8 +75,8 @@ void GeoDL::on_radioButton_toggled(bool checked)
     if(checked)
     {
         ui.mapWidget->setCouche(CASSINI);
-        ui.sliderDisp->setMinimum(ui.mapWidget->getZoomLevelMin());
-        ui.sliderDown->setMinimum(ui.mapWidget->getZoomLevelMin());
+        ui.sliderDisp->setMaximum(ui.mapWidget->getZoomLevelMax());
+        ui.sliderDown->setMaximum(ui.mapWidget->getZoomLevelMax());
     }
 }
 
@@ -85,8 +85,8 @@ void GeoDL::on_radioButton_2_toggled(bool checked)
     if(checked)
     {
         ui.mapWidget->setCouche(CADASTRE);
-        ui.sliderDisp->setMinimum(ui.mapWidget->getZoomLevelMin());
-        ui.sliderDown->setMinimum(ui.mapWidget->getZoomLevelMin());
+        ui.sliderDisp->setMaximum(ui.mapWidget->getZoomLevelMax());
+        ui.sliderDown->setMaximum(ui.mapWidget->getZoomLevelMax());
     }
 }
 
@@ -101,6 +101,8 @@ void GeoDL::on_mapWidget_coordChange(double longit, double latit)
 {
     ui.edtLongitude->setText(QString("%1").arg(longit));
     ui.edtLatitude->setText(QString("%1").arg(latit));
+    ui.edtCircLong->setText(QString("%1").arg(longit));
+    ui.edtCircLat->setText(QString("%1").arg(latit));
 }
 
 void GeoDL::on_mapWidget_mouseCoordChange(double longit, double latit)
@@ -183,4 +185,25 @@ void GeoDL::on_btnGotoAddress_clicked()
 void GeoDL::on_btnAtlas_clicked()
 {
     ui.mapWidget->exportAtlas(ui.sliderDown->value());
+}
+
+void GeoDL::on_btnAddCircle_clicked()
+{
+    ui.mapWidget->addCircle(QPointF(ui.edtCircLong->text().toDouble(),ui.edtCircLat->text().toDouble()),
+                            ui.edtCircR->text().toDouble());
+}
+
+void GeoDL::on_btnDelCircles_clicked()
+{
+    ui.mapWidget->clearCircles();
+}
+
+void GeoDL::on_checkBox_toggled(bool checked)
+{
+    ui.mapWidget->toggleCrosshair(checked);
+}
+
+void GeoDL::on_chkReticule_toggled(bool checked)
+{
+    ui.mapWidget->toggleCrosshair(checked);
 }

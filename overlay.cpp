@@ -13,86 +13,33 @@ Overlay::Overlay(MapWidget *parent) :
 {
     setPalette(Qt::transparent);
     setAttribute(Qt::WA_TransparentForMouseEvents);
-    scaleOn = true;
-    scaleRatio = 0.5;
     map=parent;
 }
 
-int Overlay::scaleDist()
+ScaleOverlay::ScaleOverlay(MapWidget *parent) :
+    Overlay(parent)
 {
-    int dist = floor(110*scaleRatio);
+    scaleOn = true;
+}
+
+int ScaleOverlay::scaleDist()
+{
+    int dist = floor(110*map->scaleRatio());
     int puissance = floor(pow(10,floor(log(dist)/log(10))));
     int nb = floor(dist/pow(10,floor(log(dist)/log(10))));
     dist = nb*puissance;
     return dist;
 }
 
-int Overlay::scaleLength()
+int ScaleOverlay::scaleLength()
 {
-    return int(scaleDist()/scaleRatio);
-}
-
-double Overlay::dist()
-{
-    double pixels =0;
-    QPoint precedent;
-    if(selection.size()>1)
-    {
-        precedent = selection[0];
-        for(int i=1;i<selection.size();i++)
-        {
-            pixels+=QLineF(precedent,selection[i]).length();
-            precedent = selection[i];
-        }
-    }
-    return pixels*scaleRatio;
-}
-
-void GpxOverlay::setListWidget(QListWidget *list)
-{
-     gpxList = list;
-     connect(gpxList,SIGNAL(itemClicked(QListWidgetItem*)),this,SLOT(showTrace(QListWidgetItem*)));
-}
-
-void Overlay::addPoint(QPoint point)
-{
-    switch(selType)
-    {
-    case SEL_TELECHARGEMENT:
-    case SEL_LIGNE:
-        if(selection.size()==2)
-            selection.replace(1,point);
-        else
-            selection<<point;
-        break;
-    case SEL_CHEMIN:
-            selection<<point;
-        break;
-    }
+    return int(scaleDist()/map->scaleRatio());
 }
 
 
-void Overlay::paintEvent(QPaintEvent *)
+void ScaleOverlay::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
-    if(selectionOn)
-    {
-        //paint selection
-        painter.setPen(Qt::red);
-        if(selection.size()>1)
-        switch(selType)
-        {
-        case SEL_TELECHARGEMENT:
-            painter.drawRect(QRect(selection[0],selection[1]));
-            break;
-        case SEL_LIGNE:
-            painter.drawLine(selection[0],selection[1]);
-            break;
-        case SEL_CHEMIN:
-            painter.drawPolyline(selection);
-            break;
-        }
-    }
     if(scaleOn)
     {
         //paint scale
@@ -114,23 +61,131 @@ void Overlay::paintEvent(QPaintEvent *)
                                length,15), QString("%1 m").arg(dist),
                          QTextOption(Qt::AlignHCenter));
     }
-
     painter.end();
 }
 
 
-
-
-
-
-GpxOverlay::GpxOverlay(MapWidget *parent) :
-    QWidget(parent)
+SelectionOverlay::SelectionOverlay(MapWidget *parent) :
+    Overlay(parent)
 {
-    setPalette(Qt::transparent);
-    setAttribute(Qt::WA_TransparentForMouseEvents);
-    map=parent;
+    map = parent;
+    selectionOn=false;
+    resize(parent->size());
 }
 
+double SelectionOverlay::dist()
+{
+    double pixels =0;
+    QPoint precedent;
+    if(selection.size()>1)
+    {
+        precedent = selection[0];
+        for(int i=1;i<selection.size();i++)
+        {
+            pixels+=QLineF(precedent,selection[i]).length();
+            precedent = selection[i];
+        }
+    }
+    return pixels*map->scaleRatio()*cos(phi0);
+}
+
+
+void SelectionOverlay::addPoint(QPoint point)
+{
+    switch(selType)
+    {
+    case SEL_TELECHARGEMENT:
+    case SEL_LIGNE:
+        if(selection.size()==2)
+            selection.replace(1,point);
+        else
+            selection<<point;
+        break;
+    case SEL_CHEMIN:
+            selection<<point;
+        break;
+    }
+}
+
+
+void SelectionOverlay::paintEvent(QPaintEvent *)
+{
+    QPainter painter(this);
+    if(selectionOn)
+    {
+        //paint selection
+        painter.setPen(Qt::red);
+        if(selection.size()>1)
+        switch(selType)
+        {
+        case SEL_TELECHARGEMENT:
+            painter.drawRect(QRect(selection[0],selection[1]));
+            break;
+        case SEL_LIGNE:
+            painter.drawLine(selection[0],selection[1]);
+            break;
+        case SEL_CHEMIN:
+            painter.drawPolyline(selection);
+            break;
+        }
+    }
+    painter.end();
+}
+
+
+CircleOverlay::CircleOverlay(MapWidget *parent):Overlay(parent)
+{
+    map = parent;
+}
+
+void CircleOverlay::addCircle(QPointF coords, double rayon)
+{
+    Circle temp;
+    temp.coords = coords;
+    temp.rayon = rayon;
+    circles.append(temp);
+    update();
+}
+
+void CircleOverlay::clearCircles()
+{
+    circles.clear();
+    update();
+}
+
+
+void CircleOverlay::paintEvent(QPaintEvent *)
+{
+    QPainter painter(this);
+    this->resize(map->size());
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setPen(QPen(QColor(100,0,0,200),3));
+    painter.setBrush(QBrush(QColor(100,0,0,50)));
+    for(int i=0;i<circles.size();i++)
+    {
+        int rayon = int(circles[i].rayon/(map->scaleRatio()*cos(phi0)));
+        painter.drawEllipse(map->convertLongLatToScreenXY(circles[i].coords),rayon,rayon);
+    }
+    if(crosshair)
+    {
+        painter.setPen(QPen(QColor(0,0,100,200),1));
+        painter.drawLine(this->width()/2,0,this->width()/2,this->height());
+        painter.drawLine(0,this->height()/2,this->width(),this->height()/2);
+    }
+    painter.end();
+}
+
+GpxOverlay::GpxOverlay(MapWidget *parent) :
+    Overlay(parent)
+{
+    map = parent;
+}
+
+void GpxOverlay::setListWidget(QListWidget *list)
+{
+     gpxList = list;
+     connect(gpxList,SIGNAL(itemClicked(QListWidgetItem*)),this,SLOT(showTrace(QListWidgetItem*)));
+}
 
 void GpxOverlay::loadTraceFromGPX(QString filename)
 {
