@@ -275,6 +275,7 @@ void MapWidget::resizeEvent(QResizeEvent *event)
     updateMap();
     selectionOverlay->resize(event->size());
     gpxOverlay->resize(event->size());
+    scaleOverlay->resize(event->size());
     event->accept();
 }
 
@@ -469,6 +470,7 @@ void MapWidget::updateMap()
         selectionOverlay->raise();
     gpxOverlay->raise();
     circleOverlay->raise();
+    scaleOverlay->raise();
 }
 
 void MapWidget::setSelectionType(SelectionType s)

@@ -15,6 +15,11 @@ GeoEngine::GeoEngine(GeoEngineMode m)
     originXY = QPoint(-20037508,20037508);
     tilesDir = QDir::currentPath()+QString("/tiles");
 
+    //http://gpp3-wxs.ign.fr/tyujsdxmzox31ituc2uw0qwl/geoportail/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&LAYER=CADASTRALPARCELS.PARCELS&STYLE=bdparcellaire&FORMAT=image/png&TILEMATRIXSET=PM&TILEMATRIX=10&TILEROW=354&TILECOL=531&extParamId=aHR0cDovL3d3dy5nZW9wb3J0YWlsLmdvdXYuZnIvZG9ubmVlcw==
+    //GET /tyujsdxmzox31ituc2uw0qwl/geoportail/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&LAYER=ORTHOIMAGERY.ORTHOPHOTOS&STYLE=normal&FORMAT=image/jpeg&TILEMATRIXSET=PM&TILEMATRIX=10&TILEROW=353&TILECOL=530&extParamId=aHR0cDovL3d3dy5nZW9wb3J0YWlsLmdvdXYuZnIvZG9ubmVlcw== HTTP/1.1
+    //http://gpp3-wxs.ign.fr/tyujsdxmzox31ituc2uw0qwl/geoportail/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&LAYER=GEOGRAPHICALGRIDSYSTEMS.MAPS&STYLE=normal&FORMAT=image/jpeg&TILEMATRIXSET=PM&TILEMATRIX=12&TILEROW=1424&TILECOL=2081
+
+
     // Les constantes pour les differents types d'images
     csteCouche.resize(10);
     formatCouche.resize(10);
@@ -89,11 +94,9 @@ void GeoEngine::saveTileToDisk(QUrl url, QByteArray dat)
     //ne sauve pas une image vide
     if(dat.size()==0)
         return;
-    QFileInfo info(url.toString());
-    QString relative = convertTileToDir(extractParamsFromFilename(info.fileName()));
-    if(relative == QString("E"))
-        return;
-    QFileInfo fileinfo(locateFile(tilesDir,info.fileName()));
+    TuileParams params = extractParamsFromUrl(url.toString());
+    QFileInfo fileinfo = convertTileToFileInfo(params);
+
     QDir dir(fileinfo.absolutePath());
     if(!dir.exists())
         dir.mkpath(dir.path());
@@ -105,50 +108,53 @@ void GeoEngine::saveTileToDisk(QUrl url, QByteArray dat)
 
 }
 
-
-QString GeoEngine::locateFile(QString baseDir, QString filename)
+TuileParams GeoEngine::extractParamsFromUrl(QString filename)
 {
-    QString dir = baseDir+QString("/")+convertTileToDir(extractParamsFromFilename(filename));
-#ifdef _WIN32
-    for(int i=0;i<filename.length();i++)
+    TuileParams params;
+    QRegExp rx("http:.*LAYER=([^&]*).*TILEMATRIX=([^&]*)&TILEROW=([^&]*)&TILECOL=([^&]*)$");
+    if(rx.exactMatch(filename))
     {
-        if(filename[i].isUpper())
-        {
-            filename.insert(i,QChar('h'));
-            i++;
-        }
+        if(rx.cap(1)== QString("GEOGRAPHICALGRIDSYSTEMS.MAPS"))
+            params.couche = CARTE_IGN;
+        else if(rx.cap(1)==QString("ORTHOIMAGERY.ORTHOPHOTOS"))
+            params.couche = PHOTOS;
+        else if(rx.cap(1)== QString("GEOGRAPHICALGRIDSYSTEMS.CASSINI"))
+            params.couche = CASSINI;
+        else if(rx.cap(1)==QString("CADASTRALPARCELS.PARCELS"))
+            params.couche = CADASTRE;
+        params.zoomlevel = rx.cap(2).toInt();
+        params.y = rx.cap(3).toInt();
+        params.x = rx.cap(4).toInt();
     }
-    filename = filename.toLower();
-#endif
-    return dir + filename;
+    return params;
 }
 
-QString GeoEngine::convertTileToDir(TuileParams params)
+QFileInfo GeoEngine::convertTileToFileInfo(TuileParams params)
 {
-    QString dir;
+    QString path=tilesDir+QString("/");
     switch(params.couche)
     {
         case CARTE_IGN:
-            dir += QString("CARTE_IGN/");
+            path += QString("CARTE_IGN/");
             break;
         case PHOTOS:
-            dir+= QString("PHOTOS/");
+            path+= QString("PHOTOS/");
             break;
         case CASSINI :
-            dir+= QString("CASSINI/");
+            path+= QString("CASSINI/");
             break;
         case CADASTRE :
-            dir+=QString("CADASTRE/");
+            path+=QString("CADASTRE/");
             break;
         default :
             return QString("E");
     }
-    dir.append(QString("%1/").arg(QString().sprintf("%02d",params.zoomlevel)));
-    dir.append(QString("%1/").arg(params.signes));
-    dir.append(QString("%1/").arg(QString().sprintf("%03d",int(params.x/100))));
-    dir.append(QString("%1/").arg(QString().sprintf("%03d",params.x%100)));
-    dir.append(QString("%1/").arg(QString().sprintf("%03d",int(params.y/100))));
-    return dir;
+    path.append(QString("%1/").arg(QString().sprintf("%02d",params.zoomlevel)));
+    path.append(QString("%1/").arg(QString().sprintf("%03d",int(params.x/100))));
+    path.append(QString("%1/").arg(QString().sprintf("%03d",params.x%100)));
+    path.append(QString("%1/").arg(QString().sprintf("%03d",int(params.y/100))));
+    path.append(QString("img%1-%2.%3").arg(params.x).arg(params.y).arg(QString(formatCouche[params.couche]).remove(0,6)));
+    return QFileInfo(path);
 }
 
 // projection de long/lat vers mercator
@@ -156,7 +162,6 @@ QPoint GeoEngine::convertLongLatToXY(double longi, double lati)
 {
     int x = longi*pi/180*r;
     int y = log(tan((90 + lati) * pi / 360.0 )) * r;
-    qDebug()<<"long/lat :("<<longi<<","<<lati<<") => ("<<x<<","<<y<<")";
     return QPoint(x,y);
 }
 
@@ -215,63 +220,8 @@ void GeoEngine::init()
 
 }
 
-QString GeoEngine::encryptNbBase(int nb, int base)
-{
-    QString result("");
-    while(nb!=0)
-    {
-        result.prepend(tabencryptxy[nb%base]);
-        nb = int(nb/base);
-    }
-    return result;
-}
-
-int GeoEngine::decryptNbBase(QString nb, int base)
-{
-    int fact = 1;
-    int result = 0;
-    for(int i=nb.size()-1;i>=0;i--)
-    {
-        result+=my_tabencryptxy.indexOf(nb[i].toAscii())*fact;
-        fact*=base;
-    }
-    return result;
-}
-
-
 QUrl GeoEngine::genereUrl(Couche couche, int x, int y, int zoomLevel)
 {
-    /*
-    // adresse de base
-    QString url("http://visu-2d.geoportail.fr/geoweb/maps");
-    // ajoute la couche
-    url.append(csteCouche[couche]);
-    url.append(tabencryptnbr62x[zoomLevel]);
-    // gere les signes
-    int nb=0;
-    if(x<0)
-    {
-        nb+=2;
-        x=-x;
-    }
-    if(y<0)
-    {
-        nb+=1;
-        y=-y;
-    }
-    url.append(tabencryptsignes[nb]);
-    QString xEncrypt = encryptNbBase(x,62);
-    QString yEncrypt = encryptNbBase(y,62);
-    // ajout la taille de la coordonnée x
-    url.append(tabencryptnbr62x[xEncrypt.size()]);
-    url.append(xEncrypt);
-    url.append(yEncrypt);
-    url.append(formatCouche[couche]);
-    */
-    //http://gpp3-wxs.ign.fr/tyujsdxmzox31ituc2uw0qwl/geoportail/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&LAYER=CADASTRALPARCELS.PARCELS&STYLE=bdparcellaire&FORMAT=image/png&TILEMATRIXSET=PM&TILEMATRIX=10&TILEROW=354&TILECOL=531&extParamId=aHR0cDovL3d3dy5nZW9wb3J0YWlsLmdvdXYuZnIvZG9ubmVlcw==
-//GET /tyujsdxmzox31ituc2uw0qwl/geoportail/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&LAYER=ORTHOIMAGERY.ORTHOPHOTOS&STYLE=normal&FORMAT=image/jpeg&TILEMATRIXSET=PM&TILEMATRIX=10&TILEROW=353&TILECOL=530&extParamId=aHR0cDovL3d3dy5nZW9wb3J0YWlsLmdvdXYuZnIvZG9ubmVlcw== HTTP/1.1
-
-    //http://gpp3-wxs.ign.fr/tyujsdxmzox31ituc2uw0qwl/geoportail/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&LAYER=GEOGRAPHICALGRIDSYSTEMS.MAPS&STYLE=normal&FORMAT=image/jpeg&TILEMATRIXSET=PM&TILEMATRIX=12&TILEROW=1424&TILECOL=2081
     QString url("http://gpp3-wxs.ign.fr/tyujsdxmzox31ituc2uw0qwl/geoportail/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile");
     url.append(QString("&LAYER=%1").arg(csteCouche[couche]));
     url.append(QString("&STYLE=normal"));
@@ -280,7 +230,6 @@ QUrl GeoEngine::genereUrl(Couche couche, int x, int y, int zoomLevel)
     url.append(QString("&TILEMATRIX=%1").arg(zoomLevel));
     url.append(QString("&TILEROW=%1").arg(y));
     url.append(QString("&TILECOL=%1").arg(x));
-    qDebug()<<zoomLevel<<" "<<x<<" "<<y;
     return QUrl(url);
 }
 
@@ -367,11 +316,14 @@ void GeoEngine::requestFinished(QNetworkReply* reply)
 
 }
 
-//todo : rajouter une option pour forcer le téléchargement
 int GeoEngine::downloadImage(Couche couche, int x, int y, int zoomLevel,bool forceDl)
 {
-    QFileInfo info(genereUrl(couche, x, y, zoomLevel).toString());
-    info = QFileInfo(locateFile(tilesDir,info.fileName()));
+    TuileParams params;
+    params.couche=couche;
+    params.x = x;
+    params.y = y;
+    params.zoomlevel = zoomLevel;
+    QFileInfo info = convertTileToFileInfo(params);
     if(!info.exists() || ((mode==CONNECTED) && forceDl))
     {
         if(mode==OFFLINE)
@@ -397,25 +349,6 @@ int GeoEngine::downloadImage(Couche couche, int x, int y, int zoomLevel,bool for
 void GeoEngine::sendFirstData()
 {
     emit(dataReady(toSend.dequeue(),toSendId.dequeue()));
-}
-
-TuileParams GeoEngine::extractParamsFromFilename(QString filename)
-{
-    TuileParams params;
-    filename.remove(QString("maps"));
-    filename.remove(filename.size()-4,4); //remove extension
-    params.couche = (Couche)csteCouche.indexOf(filename.left(3));
-    filename.remove(0,3);
-    params.zoomlevel = my_tabencryptnbr62x.indexOf(filename[0].toAscii());
-    filename.remove(0,1);
-    params.signes = my_tabencryptsignes.indexOf(filename[0].toAscii());
-    filename.remove(0,1);
-    int tailleX = my_tabencryptnbr62x.indexOf(filename[0].toAscii());
-    filename.remove(0,1);
-    params.x = decryptNbBase(filename.left(tailleX),62);
-    filename.remove(0,tailleX);
-    params.y = decryptNbBase(filename,62);
-    return params;
 }
 
 void GeoEngine::getCoord(QString address)

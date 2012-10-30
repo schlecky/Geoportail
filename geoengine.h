@@ -6,6 +6,7 @@
 #include <QNetworkDiskCache>
 #include <QUrl>
 #include <QVector>
+#include <QFileInfo>
 #include <QString>
 #include <QProgressBar>
 #include <QQueue>
@@ -32,7 +33,7 @@ public:
     int downloadImage(Couche couche, int x, int y, int zoomLevel, bool forceDl=false);      // telecharge une image et renvoie l'identification du tÃ©lÃ©chargement
     bool isInitialized(){return initialized;}
     void saveCachedTiles(QProgressBar* progressbar);
-    TuileParams extractParamsFromFilename(QString filename);
+    TuileParams extractParamsFromUrl(QString url);
     void getCoord(QString address); //trouve les coordonnÃ©es correspondant Ã  une adresse
 
 public slots:
@@ -50,10 +51,9 @@ private slots:
 
 private:
     QUrl genereUrl(Couche couche, int x, int y, int zoomLevel);
-    QString encryptNbBase(int nb, int base);
-    int decryptNbBase(QString nb, int base);
-    QString convertTileToDir(TuileParams params);
-    QString locateFile(QString baseDir,QString filename);
+    //QString encryptNbBase(int nb, int base);
+    //int decryptNbBase(QString nb, int base);
+    QFileInfo convertTileToFileInfo(TuileParams params);
     void saveTileToDisk(QUrl url, QByteArray dat);
     QNetworkAccessManager* manager;
     QNetworkDiskCache* cache;

@@ -14,17 +14,20 @@ Overlay::Overlay(MapWidget *parent) :
     setPalette(Qt::transparent);
     setAttribute(Qt::WA_TransparentForMouseEvents);
     map=parent;
+    resize(parent->size());
 }
 
 ScaleOverlay::ScaleOverlay(MapWidget *parent) :
     Overlay(parent)
 {
     scaleOn = true;
+    map=parent;
+    resize(parent->size());
 }
 
 int ScaleOverlay::scaleDist()
 {
-    int dist = floor(110*map->scaleRatio());
+    int dist = floor(110*map->scaleRatio()*cos(phi0));
     int puissance = floor(pow(10,floor(log(dist)/log(10))));
     int nb = floor(dist/pow(10,floor(log(dist)/log(10))));
     dist = nb*puissance;
@@ -33,7 +36,7 @@ int ScaleOverlay::scaleDist()
 
 int ScaleOverlay::scaleLength()
 {
-    return int(scaleDist()/map->scaleRatio());
+    return int(scaleDist()/map->scaleRatio()/cos(phi0));
 }
 
 
@@ -136,6 +139,7 @@ void SelectionOverlay::paintEvent(QPaintEvent *)
 CircleOverlay::CircleOverlay(MapWidget *parent):Overlay(parent)
 {
     map = parent;
+    crosshair = false;
 }
 
 void CircleOverlay::addCircle(QPointF coords, double rayon)

@@ -198,10 +198,6 @@ void GeoDL::on_btnDelCircles_clicked()
     ui.mapWidget->clearCircles();
 }
 
-void GeoDL::on_checkBox_toggled(bool checked)
-{
-    ui.mapWidget->toggleCrosshair(checked);
-}
 
 void GeoDL::on_chkReticule_toggled(bool checked)
 {
