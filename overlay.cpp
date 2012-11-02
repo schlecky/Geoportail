@@ -114,10 +114,11 @@ void SelectionOverlay::addPoint(QPoint point)
 void SelectionOverlay::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
     if(selectionOn)
     {
         //paint selection
-        painter.setPen(Qt::red);
+        painter.setPen(QPen(QColor(150,0,0,200),3));
         if(selection.size()>1)
         switch(selType)
         {

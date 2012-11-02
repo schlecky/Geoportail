@@ -270,7 +270,6 @@ void GeoEngine::requestFinished(QNetworkReply* reply)
         if(reply == initReply)
             initReply = manager->get(QNetworkRequest(_urlRedirectedTo));
         else
-
             manager->get(QNetworkRequest(_urlRedirectedTo));
     }
     else
@@ -280,7 +279,7 @@ void GeoEngine::requestFinished(QNetworkReply* reply)
          */
         /* ...so this can be cleared. */
         _urlRedirectedTo.clear();
-        if(reply == initReply)
+        if((reply == initReply) && !initialized)
         {
             initialized = true;
             emit(ready());

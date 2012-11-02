@@ -21,7 +21,7 @@ MapWidget::MapWidget(QWidget *parent) :
     connect(geoEngine,SIGNAL(ready()),this,SLOT(engineReady()));
     connect(geoEngine,SIGNAL(geocodeReceived(QPointF)),this,SLOT(receiveGeocode(QPointF)));
     geoEngine->init();
-    zoomLevel = 6;
+    zoomLevel = 10;
     couche = CARTE_IGN;
     forceDL=false;
     moving = false;
@@ -167,7 +167,6 @@ void MapWidget::setZoomLevel(int zoom)
         delete tiles.takeFirst();
     downIds.clear();
     selectionOverlay->hideSelection();
-    //selectionOverlay->setScaleRatio(1/(factRatio*xRatios[zoomLevel-1]));
     emit(setDLEnabled(false));
     emit(zoomChanged(zoomLevel));
     updateMap();
@@ -356,7 +355,8 @@ void MapWidget::downloadSelection(int zoomLevel,bool split, int maxWidth, int ma
                 for(int j=0;j<ny/maxHeight;j++)
                 {
                     savedMap.append(QPixmap(nx%maxWidth,maxHeight));
-                    mapRect.append(QRect(downloadedXYRect.topLeft()+QPoint(nx/maxWidth*dx,downloadedXYRect.height()%dy+(ny/maxHeight-j-1)*dy),
+                    mapRect.append(QRect(downloadedXYRect.topLeft()+
+                                         QPoint(nx/maxWidth*dx,downloadedXYRect.height()%dy+(ny/maxHeight-j-1)*dy),
                                          QSize(downloadedXYRect.width()%dx,dy)));
                     mapPos.append(QPoint(nx/maxWidth,j));
                 }
@@ -382,7 +382,7 @@ void MapWidget::downloadSelection(int zoomLevel,bool split, int maxWidth, int ma
                 int id = geoEngine->downloadImage(CARTE_IGN,i,j,zoomLevel,forceDL);
                     toSavePositions.insert(id,QPoint(
                                                (i-selectedTilesRect.topLeft().x())*tileSize,
-                                               ny-tileSize-(j-selectedTilesRect.topLeft().y())*tileSize)
+                                               (j-selectedTilesRect.topLeft().y())*tileSize)
                                            );
             }
     }
@@ -456,6 +456,10 @@ void MapWidget::updateMap()
         }
     for(int i=0; i<tiles.size();)
     {
+        // remet tout bien en place (si on ne le fait pas, y'a des décallages)
+        QPoint p = convertMapToScreenXY(geoEngine->convertNumTileToXY(tiles[i]->getNum(),zoomLevel));
+        tiles[i]->move(p);
+
         if(!newTilesRect.contains(tiles[i]->getNum()))
         {
            Tile* tile=tiles.takeAt(i);
