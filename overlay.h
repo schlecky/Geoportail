@@ -99,6 +99,7 @@ class CircleOverlay : public Overlay
     protected :
         virtual void paintEvent(QPaintEvent *);
     private:
+        QPolygon circleToPolygon(Circle circ); // Convertit un cercle en polygon tracé à l'écran
         QVector<Circle> circles;
         bool crosshair;
 };

@@ -158,6 +158,20 @@ void CircleOverlay::clearCircles()
     update();
 }
 
+QPolygon CircleOverlay::circleToPolygon(Circle circ)
+{
+    QPolygon polygon;
+    for(double angle=0; angle<2*pi; angle+=pi/30)
+    {
+        double lat1 = circ.coords.y()*pi/180;
+        double long1 = circ.coords.x()*pi/180;
+        double lat2 = asin(sin(lat1)*cos(circ.rayon/r)+cos(lat1)*sin(circ.rayon/r)*cos(angle));
+        double long2 = 180/pi*(long1 + atan2(sin(angle)*sin(circ.rayon/r)*cos(lat1),cos(circ.rayon/r)-sin(lat1)*sin(lat2)));
+        polygon.append(map->convertLongLatToScreenXY(QPointF(long2,180/pi*lat2)));
+    }
+    return polygon;
+}
+
 
 void CircleOverlay::paintEvent(QPaintEvent *)
 {
@@ -168,8 +182,9 @@ void CircleOverlay::paintEvent(QPaintEvent *)
     painter.setBrush(QBrush(QColor(100,0,0,50)));
     for(int i=0;i<circles.size();i++)
     {
-        int rayon = int(circles[i].rayon/(map->scaleRatio()*cos(phi0)));
-        painter.drawEllipse(map->convertLongLatToScreenXY(circles[i].coords),rayon,rayon);
+        //int rayon = int(circles[i].rayon/(map->scaleRatio()*cos(circles[i].coords.y()*pi/180)));
+        //painter.drawEllipse(map->convertLongLatToScreenXY(circles[i].coords),rayon,rayon);
+        painter.drawPolygon(circleToPolygon(circles[i]));
     }
     if(crosshair)
     {
