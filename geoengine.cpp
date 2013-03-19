@@ -330,6 +330,8 @@ int GeoEngine::downloadImage(Couche couche, int x, int y, int zoomLevel,bool for
         else if (mode==CONNECTED)
         {
             QNetworkRequest request(genereUrl(couche, x, y, zoomLevel));
+            request.setRawHeader("Referer", "http://www.geoportail.gouv.fr/swf/geoportal-visu-1.1.3.swf");
+            request.setRawHeader("Host", "gpp3-wxs.ign.fr");
             request.setAttribute(QNetworkRequest::CacheLoadControlAttribute,
                                  QNetworkRequest::PreferCache);
             imageRequests.append(manager->get(request));

@@ -1,8 +1,8 @@
 /********************************************************************************
 ** Form generated from reading UI file 'mainWindow.ui'
 **
-** Created: Fri Nov 2 20:57:10 2012
-**      by: Qt User Interface Compiler version 4.8.1
+** Created: Sun 18. Nov 02:29:11 2012
+**      by: Qt User Interface Compiler version 4.7.4
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -221,7 +221,7 @@ public:
         toolBox->addItem(pgMesures, QString::fromUtf8("Mesures"));
         pgAffichage = new QWidget();
         pgAffichage->setObjectName(QString::fromUtf8("pgAffichage"));
-        pgAffichage->setGeometry(QRect(0, 0, 148, 462));
+        pgAffichage->setGeometry(QRect(0, 0, 118, 408));
         verticalLayout_2 = new QVBoxLayout(pgAffichage);
         verticalLayout_2->setObjectName(QString::fromUtf8("verticalLayout_2"));
         chkReticule = new QCheckBox(pgAffichage);
@@ -315,7 +315,7 @@ public:
         toolBox->addItem(pgAffichage, QString::fromUtf8("Affichage"));
         pgNavigation = new QWidget();
         pgNavigation->setObjectName(QString::fromUtf8("pgNavigation"));
-        pgNavigation->setGeometry(QRect(0, 0, 148, 462));
+        pgNavigation->setGeometry(QRect(0, 0, 118, 244));
         verticalLayout_8 = new QVBoxLayout(pgNavigation);
         verticalLayout_8->setObjectName(QString::fromUtf8("verticalLayout_8"));
         label_2 = new QLabel(pgNavigation);
@@ -377,7 +377,7 @@ public:
         toolBox->addItem(pgNavigation, QString::fromUtf8("Navigation"));
         page = new QWidget();
         page->setObjectName(QString::fromUtf8("page"));
-        page->setGeometry(QRect(0, 0, 148, 462));
+        page->setGeometry(QRect(0, 0, 142, 288));
         verticalLayout_7 = new QVBoxLayout(page);
         verticalLayout_7->setObjectName(QString::fromUtf8("verticalLayout_7"));
         lblZoomDown = new QLabel(page);
@@ -484,7 +484,7 @@ public:
         toolBox->addItem(page, QString::fromUtf8("T\303\251l\303\251chargement"));
         page_2 = new QWidget();
         page_2->setObjectName(QString::fromUtf8("page_2"));
-        page_2->setGeometry(QRect(0, 0, 171, 447));
+        page_2->setGeometry(QRect(0, 0, 171, 105));
         verticalLayout_3 = new QVBoxLayout(page_2);
         verticalLayout_3->setObjectName(QString::fromUtf8("verticalLayout_3"));
         pushButton = new QPushButton(page_2);
